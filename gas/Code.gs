@@ -16,6 +16,9 @@
 const RECORD_SHEET = '記録';
 const RANK_SHEET = 'ランキング';
 const CLASSES = ['1組', '2組', '3組', '4組', '5組'];
+// 設定の保存に使う PIN（'utapower:'+PIN の SHA-256。PIN そのものは置かない）
+const PIN_HASH = 'd03b193db263c7f82d1e82b2b73824c8fa76994d6f81e023baf22734525bf4fc';
+const DEFAULT_SETTINGS = { diff: 'normal', range: 30 };
 const HEAD = ['id', '日付', '時刻', 'クラス', '玉', '得点', '最大コンボ', '秒数', '歌っていた割合(%)', 'むずかしさ', '受信日時'];
 
 // 端末から記録を受け取る（1件でも配列でもOK。同じidは二重登録しない）
@@ -24,6 +27,7 @@ function doPost(e) {
   lock.waitLock(10000);
   try {
     const data = JSON.parse(e.postData.contents);
+    if (data && data.action === 'saveSettings') return json_(saveSettings_(data));
     const list = Array.isArray(data) ? data : [data];
     const sh = recordSheet_();
     const last = sh.getLastRow();
@@ -47,7 +51,28 @@ function doPost(e) {
 function doGet(e) {
   const p = (e && e.parameter) || {};
   if (p.action === 'records') return json_(records_(String(p.cls || '')));
+  if (p.action === 'settings') return json_(settings_());
   return json_(ranking_());
+}
+
+// 設定（むずかしさ・マイク感度。全クラス共通）はスクリプトプロパティに保存
+function settings_() {
+  const raw = PropertiesService.getScriptProperties().getProperty('SETTINGS');
+  const s = raw ? JSON.parse(raw) : {};
+  return { diff: s.diff || DEFAULT_SETTINGS.diff, range: Number(s.range) || DEFAULT_SETTINGS.range };
+}
+
+function saveSettings_(data) {
+  const digest = Utilities.computeDigest(Utilities.DigestAlgorithm.SHA_256, 'utapower:' + String(data.pin || ''), Utilities.Charset.UTF_8);
+  const hex = digest.map(b => ('0' + (b & 255).toString(16)).slice(-2)).join('');
+  if (hex !== PIN_HASH) return { ok: false, error: 'pin' };
+  const cur = settings_();
+  const inS = data.settings || {};
+  if (['easy', 'normal', 'hard'].indexOf(inS.diff) >= 0) cur.diff = inS.diff;
+  const v = Number(inS.range);
+  if (v >= 12 && v <= 50) cur.range = v;
+  PropertiesService.getScriptProperties().setProperty('SETTINGS', JSON.stringify(cur));
+  return { ok: true, settings: cur };
 }
 
 function records_(cls) {

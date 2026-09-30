@@ -181,17 +181,14 @@ input[type=range]{width:320px;accent-color:#ff4fd8}
     <div class="srow"><div><label class="t" for="sDiff">むずかしさ</label><select id="sDiff"></select></div>
       <span class="small">玉1こに必要なパワーの量です。日ごとに比べるなら、途中で変えないのがおすすめです（記録は同じむずかしさ同士で比べます）。</span></div>
     <div class="srow"><div><label class="t" for="sRange">マイク感度</label><span class="small">よく反応</span><input type="range" id="sRange" min="12" max="50" step="1"><span class="small">反応ひかえめ</span></div>
-      <span class="small">クラスで歌ってみて、ちょうどいい声のときに<b style="color:#5dff8a">緑ゾーン</b>に入るよう調整してください。赤ゾーンは「大きすぎ」で、パワーが伸びにくくなります。</span></div>
+      <span class="small">全クラス共通です。歌ってみて、ちょうどいい声のときに<b style="color:#5dff8a">緑ゾーン</b>に入るよう調整してください。赤ゾーンは「大きすぎ」で、パワーが伸びにくくなります。</span></div>
     <div class="srow"><div><button class="btn2" id="micTest">マイクテスト</button><div class="meterH" id="meterH"><div id="mBar"></div></div></div><span id="mLabel" class="small"></span></div>
-    <div class="srow"><div><label class="t" for="sGas">スプレッドシートのURL</label><input type="text" id="sGas" placeholder="https://script.google.com/macros/s/…/exec" style="flex:1;min-width:300px;font-size:16px"></div>
-      <div><button class="btn2" id="gasTest">つながるか確認</button><button class="btn2" id="gasResend">未送信を送る</button><span class="small" id="gasMsg"></span></div>
-      <span class="small">Apps Script のウェブアプリURLを貼ると、歌い終わるたびに記録を自動で送り、5クラスのランキングが見られます。5クラスとも同じ「むずかしさ」にしてください。</span></div>
     <div class="srow"><div><label class="t"><input type="checkbox" id="sDemo"> デモモード</label></div>
-      <span class="small">マイクを使わずに動作を確認できます。プレイ中にスペースキー（またはマウス）を押している間は「歌っている」、Shift＋スペースで「大きすぎ」になります。</span></div>
+      <span class="small">マイクを使わずに動作を確認できます（このページを開いている間だけ）。プレイ中にスペースキー（またはマウス）を押している間は「歌っている」、Shift＋スペースで「大きすぎ」になります。</span></div>
     <div class="srow"><span class="small">使い方のコツ：伴奏をスピーカーで流す場合は、前奏が始まってからスタートを押すと、伴奏の音を基準にして測れます。</span></div>
-    <div class="srow"><div><button class="btn2 danger" id="wipe">この端末に保存した記録を消す</button></div>
-      <span class="small">この端末の中の記録だけを消します（「ぜんかいより」の比較に使っています）。スプレッドシートの記録は消えません。</span><div></div></div>
+    <div class="srow"><span class="small">設定と記録は すべてスプレッドシートに 保存されます（この端末には 保存しません）。</span></div>
   </div>
+  <div class="row"><button class="btn2" id="saveSet">ほぞんする</button><span class="small" id="saveMsg"></span></div>
   <button class="btn2" id="setBack">もどる</button>
 </div>
 
@@ -216,10 +213,6 @@ const rand=(a,b)=>a+Math.random()*(b-a);
 const clamp=(v,a,b)=>v<a?a:v>b?b:v;
 const TAU=Math.PI*2;
 const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-const LS={
-  get(k,d){try{const v=localStorage.getItem(k);return v==null?d:JSON.parse(v)}catch(e){return d}},
-  set(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}
-};
 const pad=n=>String(n).padStart(2,'0');
 function today(){const d=new Date();return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`}
 function hhmm(){const d=new Date();return `${pad(d.getHours())}:${pad(d.getMinutes())}`}
@@ -232,10 +225,15 @@ const GOLD='#ffd54a';
 // 声の大きさゾーン（正規化レベル）
 const Z={low:.12,good:.32,loud:.88,max:1.15};
 
-let cfg=Object.assign({cls:'1組',diff:'normal',range:30,demo:false,gasUrl:'https://script.google.com/macros/s/AKfycbySK-TInyiSCOiwod8oEMp9ZAdt4-TJeK2c-gtfyyGfaXg7sfgxyJqoukWLPiZS4grIww/exec'},LS.get('uta.cfg',{}));
-let records=LS.get('uta.records',[]);
-const saveCfg=()=>LS.set('uta.cfg',cfg);
-const saveRecords=()=>LS.set('uta.records',records);
+const GAS_URL='https://script.google.com/macros/s/AKfycbySK-TInyiSCOiwod8oEMp9ZAdt4-TJeK2c-gtfyyGfaXg7sfgxyJqoukWLPiZS4grIww/exec';
+// 設定と記録はすべてスプレッドシート（Apps Script）に置く。端末には何も保存しない
+const cfg={diff:'normal',range:30,demo:false};
+let settingsLoaded=false;
+async function loadSettings(){
+  try{const j=await (await fetch(GAS_URL+'?action=settings',{cache:'no-store'})).json();if(j&&j.range){cfg.diff=j.diff;cfg.range=j.range;settingsLoaded=true}}
+  catch(e){console.warn(e)}
+  return settingsLoaded;
+}
 
 // ================= audio =================
 const A={ctx:null,an:null,tbuf:null,fbuf:null,ready:false,db:-100,raw:0,lvl:0,floor:-60,freq:null};
@@ -690,6 +688,8 @@ function refreshTitle(){
 async function startGame(){
   if(!curCls){$('#tHint').textContent='さきに クラスを えらんでね';return}
   $('#tHint').textContent='';
+  if(!settingsLoaded&&!(await loadSettings()))$('#tHint').textContent='せっていを よみこめなかったので、ふつうの せっていで はじめます';
+  if(!recCache[curCls])fetchRecords(curCls);
   const ok=await initMic();
   if(!ok){$('#tHint').textContent='マイクが使えませんでした。ブラウザのマイクの許可を確認してください（「せってい」のデモモードでも試せます）';return}
   resetP();parts=[];rings=[];texts=[];flyers=[];tray=[];
@@ -700,13 +700,15 @@ function finish(){
   if(mode==='count'){backTitle();return}
   if(mode!=='play')return;
   if(P.elapsed<5){backTitle();return}
-  const rec={id:Date.now(),date:today(),time:hhmm(),cls:curCls,balls:P.balls,score:Math.round(P.points*100),
-    maxCombo:P.maxCombo,duration:Math.round(P.elapsed),singRatio:Math.round(P.singT/P.elapsed*100),diff:cfg.diff,sent:false};
-  const prev=records.filter(r=>r.cls===rec.cls&&r.diff===rec.diff).sort((a,b)=>b.id-a.id);
-  records.push(rec);saveRecords();
+  const rec={id:String(Date.now()),date:today(),time:hhmm(),cls:curCls,balls:P.balls,score:Math.round(P.points*100),
+    maxCombo:P.maxCombo,duration:Math.round(P.elapsed),singRatio:Math.round(P.singT/P.elapsed*100),diff:cfg.diff};
+  const known=recCache[rec.cls]; // スプレッドシートから読んだ このクラスの記録（新しい順）
+  const prev=known?known.filter(r=>r.diff===rec.diff):null;
+  if(known)known.unshift(rec);
+  pending.push(rec);
   showResult(rec,prev);
-  $('#rSend').textContent=cfg.gasUrl?'スプレッドシートに 送信中…':'';
-  sendPending().then(r=>{$('#rSend').textContent=r==='ok'?'スプレッドシートに 送信しました':r==='fail'?'送信できませんでした（次に歌ったときに もう一度送ります）':''});
+  $('#rSend').textContent='スプレッドシートに 保存中…';
+  sendPending().then(r=>{$('#rSend').textContent=r==='ok'?'スプレッドシートに 保存しました':'保存できませんでした。ネットにつながったら「ランキング」か「きろく」を ひらくと もういちど 送ります（ページを とじると きえます）'});
 }
 function countUp(el,to,ms,fmt=v=>v){const t0=performance.now();(function st(t){const p=Math.min(1,(t-t0)/ms);const e=1-Math.pow(1-p,3);el.textContent=fmt(Math.round(to*e));if(p<1)requestAnimationFrame(st)})(t0)}
 function showResult(rec,prev){
@@ -720,7 +722,8 @@ function showResult(rec,prev){
   countUp($('#rCombo'),rec.maxCombo,1200);
   countUp($('#rRatio'),rec.singRatio,1200,v=>v+'%');
   let html='',isBest=false;
-  if(!prev.length){html='はじめての きろく！ ここから スタート！';isBest=true}
+  if(!prev){html='<span class="sub">きろくを よみこめなかったので、ぜんかいとは くらべられません</span>'}
+  else if(!prev.length){html='はじめての きろく！ ここから スタート！';isBest=true}
   else{
     const best=prev.reduce((a,b)=>b.score>a.score?b:a);const lastR=prev[0];
     isBest=rec.score>best.score;
@@ -730,31 +733,33 @@ function showResult(rec,prev){
       `<br><span class="sub">ぜんかい ${lastR.balls}こ（${lastR.score.toLocaleString()}点）／ ベスト ${best.balls}こ（${best.score.toLocaleString()}点）</span>`;
   }
   $('#rCmp').innerHTML=html;
-  $('#rTitle').textContent=isBest&&prev.length?'NEW RECORD!!':'けっか はっぴょう！';
+  $('#rTitle').textContent=isBest&&prev&&prev.length?'NEW RECORD!!':'けっか はっぴょう！';
   fwRate=isBest?.12:.35;fwT=0;
-  if(isBest&&prev.length){flash=1;shake=20}
+  if(isBest&&prev&&prev.length){flash=1;shake=20}
 }
 function backTitle(){refreshTitle();show('title')}
 
-// ---- records（スプレッドシートから。つながらないときは この端末の記録）
+// ---- records（スプレッドシートから）
 let recView=null;const recCache={};
+async function fetchRecords(cls){
+  try{
+    const j=await (await fetch(GAS_URL+'?action=records&cls='+encodeURIComponent(cls),{cache:'no-store'})).json();
+    const list=(j.records||[]).filter(r=>!pending.some(p=>p.id===r.id));
+    return recCache[cls]=pending.filter(r=>r.cls===cls).reverse().concat(list); // まだ送れていない分も表示する
+  }catch(e){console.warn(e);return null}
+}
 async function openRecords(){
   recView=recView||curCls||CLASSES[0];show('records');renderRecords();
 }
 async function renderRecords(){
   const cls=recView;
   $('#recTabs').innerHTML=CLASSES.map(c=>`<button class="tab${c===cls?' on':''}" data-rc="${c}">${c}</button>`).join('');
-  let list=recCache[cls],note='';
-  if(!list){
-    if(cfg.gasUrl){
-      $('#chartCap').textContent='よみこみ中…';$('#chart').innerHTML='';$('#recTbl').innerHTML='';
-      await sendPending();
-      try{const j=await (await fetch(cfg.gasUrl+'?action=records&cls='+encodeURIComponent(cls),{cache:'no-store'})).json();list=recCache[cls]=j.records||[]}
-      catch(e){console.warn(e)}
-      if(recView!==cls)return; // 読み込み中に別のクラスを押した
-    }
-    if(!list){list=records.filter(r=>r.cls===cls).sort((x,y)=>y.id-x.id);note='（スプレッドシートに つながらないため、この端末の記録だけ 表示しています）'}
-  }
+  $('#chartCap').textContent='よみこみ中…';$('#chart').innerHTML='';$('#recTbl').innerHTML='';
+  await sendPending();
+  const list=await fetchRecords(cls);
+  if(recView!==cls)return; // 読み込み中に別のクラスを押した
+  if(!list){$('#chartCap').textContent='きろくを よみこめませんでした。ネットワークを 確認してください。';return}
+  const note='';
   const byDate={};list.forEach(r=>(byDate[r.date]||(byDate[r.date]=[])).push(r));
   const dates=Object.keys(byDate).sort().slice(-14);
   const vals=dates.map(d=>Math.max(...byDate[d].map(r=>r.balls)));
@@ -768,7 +773,7 @@ async function renderRecords(){
 // ---- PIN（せっていは先生だけ）
 // PIN そのものは置かず、SHA-256 のハッシュだけを置く
 const PIN_HASH='d03b193db263c7f82d1e82b2b73824c8fa76994d6f81e023baf22734525bf4fc';
-let pinIn='';
+let pinIn='',adminPin='';
 // file:// や http でも動くよう、SHA-256 を自前で計算する
 function sha256(t){
   const m=[...new TextEncoder().encode('utapower:'+t)],l=m.length*8;
@@ -796,38 +801,36 @@ async function pinKey(k){
   if(k==='C')pinIn='';else if(k==='B')pinIn=pinIn.slice(0,-1);else if(pinIn.length<4)pinIn+=k;
   drawPin();
   if(pinIn.length===4){
-    const ok=(await sha256(pinIn))===PIN_HASH;pinIn='';
-    if(ok){renderSettings();show('settings')}
+    const entered=pinIn,ok=(await sha256(entered))===PIN_HASH;pinIn='';
+    if(ok){adminPin=entered;await openSettings()}
     else{const c=$('#pinCard');c.classList.remove('shake');void c.offsetWidth;c.classList.add('shake');setTimeout(drawPin,300)}
   }
 }
 $('#pad').innerHTML=['1','2','3','4','5','6','7','8','9','C','0','B'].map(k=>`<button data-k="${k}">${k==='C'?'✕':k==='B'?'←':k}</button>`).join('');
 $('#pad').onclick=e=>{const k=e.target.dataset&&e.target.dataset.k;if(k)pinKey(k)};
 
-// ---- スプレッドシート連携（Google Apps Script）
-let sending=false;
+// ---- スプレッドシートへの保存（送れなかった分はページを開いている間だけ持っておき、次の機会に送る）
+let pending=[],sending=false;
 async function sendPending(){
-  if(!cfg.gasUrl)return 'nourl';
-  if(sending)return 'busy';
-  const pending=records.filter(r=>!r.sent);
   if(!pending.length)return 'none';
-  sending=true;
+  if(sending)return 'busy';
+  sending=true;const batch=pending.slice();
   try{
-    // Apps Script は CORS の事前確認に対応しないため、text/plain + no-cors で送る（届いたかは fetch が失敗しないことで判断）
-    await fetch(cfg.gasUrl,{method:'POST',mode:'no-cors',headers:{'Content-Type':'text/plain;charset=utf-8'},
-      body:JSON.stringify(pending.map(({sent,...r})=>r))});
-    pending.forEach(r=>r.sent=true);saveRecords();return 'ok';
+    // text/plain にすると Apps Script でも CORS の事前確認なしで送れて、応答も読める
+    const j=await (await fetch(GAS_URL,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify(batch)})).json();
+    if(!j.ok)throw new Error('save failed');
+    pending=pending.filter(r=>!batch.includes(r));return 'ok';
   }catch(e){console.warn(e);return 'fail'}
   finally{sending=false}
 }
+addEventListener('beforeunload',e=>{if(pending.length){e.preventDefault();e.returnValue=''}});
 let rankData=null,rankKey='today';
 async function openRanking(){
   show('ranking');fwRate=.5;fwT=0;
-  if(!cfg.gasUrl){$('#rankBox').innerHTML='<div class="cap">「せってい」で スプレッドシートのURLを いれると、5クラスの ランキングが 見られます</div>';$('#rankNote').textContent='';return}
   $('#rankBox').innerHTML='<div class="cap">よみこみ中…</div>';$('#rankNote').textContent='';
   await sendPending();
   try{
-    const res=await fetch(cfg.gasUrl,{cache:'no-store'});
+    const res=await fetch(GAS_URL,{cache:'no-store'});
     rankData=await res.json();renderRanking();
   }catch(e){console.warn(e);$('#rankBox').innerHTML='<div class="cap">ランキングを よみこめませんでした。URLと ネットワークを 確認してください。</div>'}
 }
@@ -848,14 +851,28 @@ function renderRanking(){
   $('#rankNote').textContent=(rankKey==='today'?'きょう いちばん 玉を あつめた回で くらべます':`こんしゅう（${rankData.weekStart.slice(5).replace('-','/')}〜）の 毎日のベストの ごうけいです`)+`　／ 更新 ${rankData.updated}`;
 }
 
-// ---- settings
-let micTesting=false;
+// ---- settings（保存先はスプレッドシート。PIN はサーバー側でも確認する）
+let micTesting=false,setDirty=false;
+async function openSettings(){
+  if(!settingsLoaded)await loadSettings();
+  setDirty=false;$('#saveMsg').textContent=settingsLoaded?'':'せっていを よみこめませんでした（ほぞんは できません）';
+  renderSettings();show('settings');
+}
 function renderSettings(){
   $('#sDiff').innerHTML=Object.entries(DIFF).map(([k,v])=>`<option value="${k}">${v.name}</option>`).join('');$('#sDiff').value=cfg.diff;
-  $('#sRange').value=cfg.range;$('#sDemo').checked=cfg.demo;$('#sGas').value=cfg.gasUrl;
-  const un=records.filter(r=>!r.sent).length;$('#gasMsg').textContent=un?`未送信 ${un}件`:'';
+  $('#sRange').value=cfg.range;$('#sDemo').checked=cfg.demo;
   const m=$('#meterH');m.querySelectorAll('.z').forEach(e=>e.remove());
   [[0,Z.low,'#666'],[Z.low,Z.good,'#ffe14d'],[Z.good,Z.loud,'#5dff8a'],[Z.loud,Z.max,'#ff4d6d']].forEach(([a,b,c])=>{const z=document.createElement('div');z.className='z';z.style.cssText=`left:${a/Z.max*100}%;width:${(b-a)/Z.max*100}%;background:${c}`;m.prepend(z)});
+}
+async function saveSettings(){
+  if(!settingsLoaded){$('#saveMsg').textContent='せっていを よみこめていないので ほぞんできません';return false}
+  $('#saveMsg').textContent='ほぞん中…';
+  try{
+    const j=await (await fetch(GAS_URL,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},
+      body:JSON.stringify({action:'saveSettings',pin:adminPin,settings:{diff:cfg.diff,range:cfg.range}})})).json();
+    if(!j.ok){$('#saveMsg').textContent=j.error==='pin'?'PINが ちがうため ほぞんできませんでした':'ほぞんできませんでした';return false}
+    cfg.diff=j.settings.diff;cfg.range=j.settings.range;setDirty=false;$('#saveMsg').textContent='ほぞんしました';return true;
+  }catch(e){console.warn(e);$('#saveMsg').textContent='ほぞんできませんでした（ネットワークを 確認してください）';return false}
 }
 function updateMeterUI(){
   if(!micTesting&&!cfg.demo){$('#mBar').style.width='0';return}
@@ -873,7 +890,7 @@ $('#rTitleBtn').onclick=backTitle;
 $('#rRec').onclick=()=>{recView=curCls;openRecords()};
 $('#recBtn').onclick=()=>{recView=curCls;openRecords()};
 $('#recTabs').onclick=e=>{const c=e.target.dataset&&e.target.dataset.rc;if(c){recView=c;renderRecords()}};
-$('#clsBtns').onclick=e=>{const c=e.target.dataset&&e.target.dataset.c;if(!c)return;curCls=c;refreshTitle();$('#tHint').textContent='';
+$('#clsBtns').onclick=e=>{const c=e.target.dataset&&e.target.dataset.c;if(!c)return;curCls=c;fetchRecords(c);refreshTitle();$('#tHint').textContent='';
   const r=e.target.getBoundingClientRect();burst(r.left+r.width/2,r.top+r.height/2,60,'#3ff6ff',true)};
 $('#rankBtn').onclick=openRanking;
 $('#rRank').onclick=openRanking;
@@ -883,21 +900,15 @@ document.querySelectorAll('.tab').forEach(b=>b.onclick=()=>{rankKey=b.dataset.k;
 $('#recBack').onclick=backTitle;
 $('#setBtn').onclick=openPin;
 $('#pinBack').onclick=backTitle;
-$('#setBack').onclick=()=>{micTesting=false;backTitle()};
-$('#sDiff').onchange=e=>{cfg.diff=e.target.value;saveCfg()};
-$('#sRange').oninput=e=>{cfg.range=+e.target.value;saveCfg()};
-$('#sDemo').onchange=e=>{cfg.demo=e.target.checked;saveCfg();if(cfg.demo)A.floor=-62};
-$('#sGas').onchange=e=>{cfg.gasUrl=e.target.value.trim();saveCfg()};
-$('#gasTest').onclick=async()=>{
-  cfg.gasUrl=$('#sGas').value.trim();saveCfg();
-  if(!/^https:\/\/script\.google(usercontent)?\.com\//.test(cfg.gasUrl)){$('#gasMsg').textContent='URLが ちがうようです（https://script.google.com/… の形です）';return}
-  $('#gasMsg').textContent='確認中…';
-  try{const r=await fetch(cfg.gasUrl,{cache:'no-store'});const j=await r.json();$('#gasMsg').textContent=j&&j.today?`つながりました（${j.today.length}クラス）`:'応答が 想定とちがいます'}
-  catch(e){$('#gasMsg').textContent='つながりませんでした。デプロイの「アクセスできるユーザー：全員」を確認してください'}
+$('#setBack').onclick=async()=>{
+  if(setDirty&&!(await saveSettings())&&!confirm('せっていを ほぞんできていません。このまま もどりますか？'))return;
+  micTesting=false;adminPin='';backTitle();
 };
-$('#gasResend').onclick=async()=>{const r=await sendPending();$('#gasMsg').textContent={ok:'送信しました',none:'未送信は ありません',nourl:'URLを 入れてください',fail:'送信できませんでした',busy:'送信中です'}[r]};
+$('#saveSet').onclick=saveSettings;
+$('#sDiff').onchange=e=>{cfg.diff=e.target.value;setDirty=true;$('#saveMsg').textContent='（まだ ほぞんしていません）'};
+$('#sRange').oninput=e=>{cfg.range=+e.target.value;setDirty=true;$('#saveMsg').textContent='（まだ ほぞんしていません）'};
+$('#sDemo').onchange=e=>{cfg.demo=e.target.checked;if(cfg.demo)A.floor=-62};
 $('#micTest').onclick=async()=>{const ok=await initMic();if(!ok){$('#mLabel').textContent='マイクが使えませんでした';return}micTesting=true;cd={settingsT:0,samples:[],done:false}};
-$('#wipe').onclick=()=>{if(confirm('この端末に保存した記録を すべて消します（スプレッドシートの記録は消えません）。よろしいですか？')){records=records.filter(r=>!r.sent&&cfg.gasUrl);saveRecords()}};
 addEventListener('keydown',e=>{
   if(mode==='play'||mode==='count'){
     if(e.code==='Space'){e.preventDefault();demoHold=e.shiftKey?2:1}
@@ -911,6 +922,6 @@ addEventListener('keyup',e=>{if(e.code==='Space')demoHold=0});
 cv.addEventListener('pointerdown',()=>{if(mode==='play')demoHold=1});
 addEventListener('pointerup',()=>{demoHold=0});
 backTitle();
-sendPending();
+loadSettings();
 </script>
 </body>
