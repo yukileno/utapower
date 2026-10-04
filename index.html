@@ -55,12 +55,12 @@ select option{color:#000}
 #stopBtn.on{display:block}
 /* result */
 .rtitle{font-family:'Dela Gothic One',sans-serif;font-size:calc(var(--u) * 70);line-height:1.1;background:linear-gradient(90deg,#ffe14d,#ff4fd8,#3ff6ff);-webkit-background-clip:text;background-clip:text;color:transparent;filter:drop-shadow(0 0 20px rgba(255,225,77,.6));animation:pulse 1.4s ease-in-out infinite}
-.rcard{width:min(1100px,94vw);display:flex;flex-direction:column;align-items:center;gap:calc(var(--u) * 8)}
-.rballs{display:flex;flex-wrap:wrap;gap:calc(var(--u) * 7);justify-content:center;max-height:calc(var(--u) * 104);overflow:hidden}
+.rcard{width:min(1100px,94vw);display:flex;flex-direction:column;align-items:center;gap:calc(var(--u) * 4)}
+.rballs{display:flex;flex-wrap:wrap;gap:calc(var(--u) * 7);justify-content:center;max-height:calc(var(--u) * 96);overflow:hidden}
 .rb{width:calc(var(--u) * 44);height:calc(var(--u) * 44);border-radius:50%;background:radial-gradient(circle at 35% 30%,#fff 0,var(--c) 30%,var(--c) 58%,#1a0c3a 115%);box-shadow:0 0 16px var(--c);animation:popin .55s cubic-bezier(.3,1.8,.5,1) both}
 .rb.gold{width:calc(var(--u) * 54);height:calc(var(--u) * 54);box-shadow:0 0 28px #ffd54a,0 0 60px #fff3}
 @keyframes popin{from{transform:scale(0) rotate(-200deg);opacity:0}to{transform:scale(1) rotate(0)}}
-.rnum{font-family:'Dela Gothic One',sans-serif;font-size:calc(var(--u) * 120);line-height:1;color:#fff;text-shadow:0 0 30px #ff4fd8,0 calc(var(--u) * 6) 0 #7b1f86}
+.rnum{font-family:'Dela Gothic One',sans-serif;font-size:calc(var(--u) * 108);line-height:1;color:#fff;text-shadow:0 0 30px #ff4fd8,0 calc(var(--u) * 6) 0 #7b1f86}
 .rnum small{font-size:.35em;margin-left:.2em}
 .stats{display:flex;gap:calc(var(--u) * 16);flex-wrap:wrap;justify-content:center}
 .stat{background:rgba(255,255,255,.08);border-radius:calc(var(--u) * 18);padding:calc(var(--u) * 8) calc(var(--u) * 22);text-align:center;min-width:calc(var(--u) * 170)}
@@ -135,6 +135,11 @@ input[type=range]{width:320px;accent-color:#ff4fd8}
 .rk .n{text-align:right;font-family:'Dela Gothic One',sans-serif;font-size:calc(var(--u) * 38);line-height:1}
 @media(max-width:700px){.rk{grid-template-columns:64px 1fr auto}.rk .track{display:none}}
 .rk .n small{display:block;font-family:'M PLUS Rounded 1c',sans-serif;font-weight:800;font-size:max(11px,calc(var(--u) * 15));color:var(--sub)}
+/* stages */
+.stageRow{display:flex;align-items:center;gap:calc(var(--u) * 8);flex-wrap:wrap;justify-content:center;font-weight:900;font-size:max(12px,calc(var(--u) * 18))}
+.schip{padding:calc(var(--u) * 3) calc(var(--u) * 14);border-radius:999px;border:2px solid var(--a);background:rgba(0,0,0,.35);box-shadow:0 0 14px var(--a)}
+.sarrow{color:var(--sub);font-size:.8em}
+#rStage{font-size:calc(var(--u) * 22)}
 </style>
 </head>
 <body>
@@ -146,6 +151,7 @@ input[type=range]{width:320px;accent-color:#ff4fd8}
     <span class="note l">♪</span><span class="note r">♫</span>
     <div class="logo" id="logo"></div>
     <div class="ribbon">みんなの うたごえで パワーをためて、玉を ゲットしよう！</div>
+    <div class="stageRow" id="stageRow"></div>
   </div>
   <div class="card goldCard">
     <div class="cap" style="margin-bottom:calc(var(--u) * 12)">クラスを えらんでね</div>
@@ -162,6 +168,7 @@ input[type=range]{width:320px;accent-color:#ff4fd8}
   <div class="card rcard">
     <div class="rballs" id="rBalls"></div>
     <div class="rnum"><span id="rBallN">0</span><small>こ ゲット！</small></div>
+    <div class="cmp" id="rStage"></div>
     <div class="stats">
       <div class="stat"><b id="rScore">0</b><span>とくてん</span></div>
       <div class="stat"><b id="rCombo">0</b><span>さいだいコンボ</span></div>
@@ -242,6 +249,66 @@ const DIFF={easy:{name:'かんたん',cost:8},normal:{name:'ふつう',cost:12},
 const CLASSES=['1組','2組','3組','4組','5組'];
 const BALL_COLORS=['#ff4f81','#ffb13d','#ffe14d','#5dff8a','#3ff6ff','#5c8bff','#b45cff','#ff4fd8','#ff7a3c'];
 const GOLD='#ffd54a';
+
+// ================= ステージ =================
+// 玉を10こ（金の玉まで）あつめるごとに つぎの せかいへ。5つめの あとは 1つめに もどる
+// hue:null は いままでどおり色が ぐるぐる変わる。数字なら その色を中心に hueR だけ ゆれる
+const STAGES=[
+  {id:'space',name:'うちゅうの せかい',short:'うちゅう',accent:'#b45cff',hue:null,balls:BALL_COLORS},
+  {id:'sea',name:'うみの せかい',short:'うみ',accent:'#3ff6ff',hue:195,hueR:25,span:120,sat:80,light:[22,6],
+    balls:['#7ff6ff','#4fc3ff','#d6fbff','#5dffd2','#a8b6ff','#3ff6ff','#9fe8ff'],
+    get:['ぷくぷく!!','ゲット!!','ナイス!!','すごい!!','いいね!!'],
+    words:{1:['なみに のって!!','あわあわ ハーモニー!!','イルカも ノリノリ!!','うみの そこまで とどけ!!'],
+      2:['おおなみ ザッパーン!!','クジラも びっくり!!','うみの みんなが あつまった!!','しんかい パワー MAX!!']}},
+  {id:'flower',name:'おはなばたけの せかい',short:'おはなばたけ',accent:'#ff7ab8',hue:330,hueR:35,span:160,sat:75,light:[24,7],
+    balls:['#ff7ab8','#ffb3d9','#ffe14d','#ff9a3c','#c38bff','#7dff9a','#ff5f8f'],
+    get:['さいた!!','ゲット!!','かわいい!!','ナイス!!','すてき!!'],
+    words:{1:['おはなが さいたよ!!','ちょうちょも おどる!!','ぽかぽか ハーモニー!!','いい かおり!!'],
+      2:['はなふぶき!!','もりの みんなが あつまった!!','おはな ぜんかい!!','まんかい パワー MAX!!']}},
+  {id:'sweets',name:'おかしの くに',short:'おかし',accent:'#ffb13d',hue:340,hueR:50,span:240,sat:80,light:[24,7],
+    balls:['#ff6fa8','#ffd36b','#8fe3ff','#c98bff','#ff9a6b','#9cff8a','#fff0a8'],
+    get:['あまーい!!','ゲット!!','おいしそう!!','ナイス!!','いいね!!'],
+    words:{1:['あまーい こえ!!','キャンディ ハーモニー!!','ケーキも ふくらむ!!','チョコっと すごい!!'],
+      2:['スイーツ パーティー!!','おかしの おしろ!!','ドーナツ だいかいてん!!','あまさ MAX!!']}},
+  {id:'sky',name:'にじと くもの せかい',short:'にじ',accent:'#ffe14d',hue:200,hueR:180,span:360,sat:75,light:[26,8],
+    balls:['#ff6b6b','#ffb347','#ffe14d','#7dff8a','#5cc8ff','#8a7bff','#e07bff'],
+    get:['ふわっと!!','ゲット!!','にじいろ!!','ナイス!!','さいこう!!'],
+    words:{1:['そらまで とどけ!!','くもの うえへ!!','にじの ハーモニー!!','つばさを ひろげて!!'],
+      2:['にじいろ パワー!!','そら いっぱいの うたごえ!!','てんしも うたう!!','せかいの てっぺん!!']}}
+];
+const stageAt=n=>STAGES[n%STAGES.length];
+const curStage=()=>stageAt(P.stageN||0);
+const ballStage=i=>stageAt(Math.floor(i/10)); // i こめ（0から）の玉が どのステージの玉か
+
+// ステージの画像は stages/<id>/ に置く（一覧 stages/list.json は GitHub Actions が自動で作る）
+// bg=背景 card=ステージ切り替えの絵 orb=まんなかの球 gold=金の玉 ball*=玉 cutin/*=カットイン。どれも無ければ絵を描いて代わりにする
+const SIMG={};
+const imgOk=im=>im&&im.complete&&im.naturalWidth?im:null;
+let stageAssetsLoading=false;
+function loadStageAssets(){
+  if(stageAssetsLoading)return;stageAssetsLoading=true;
+  fetch('stages/list.json',{cache:'no-store'}).then(r=>r.json()).then(m=>{
+    for(const st of STAGES){
+      const o=SIMG[st.id]={bg:null,card:null,orb:null,gold:null,balls:[],cut:[]};
+      for(const f of (m&&m[st.id])||[]){
+        const src='stages/'+st.id+'/'+f.split('/').map(encodeURIComponent).join('/');
+        const key=f.toLowerCase().replace(/\.[a-z0-9]+$/,'');
+        if(key.startsWith('cutin/')){o.cut.push(src);continue}
+        const one=['bg','card','orb','gold'].includes(key);
+        if(!one&&!key.startsWith('ball'))continue;
+        const im=new Image();im.src=src;
+        if(one)o[key]=im;else o.balls.push(im);
+      }
+    }
+    prepCutImage();
+  }).catch(e=>{console.warn(e);stageAssetsLoading=false});
+}
+const stageImg=(st,k)=>SIMG[st.id]?imgOk(SIMG[st.id][k]):null;
+function ballImg(i){
+  const o=SIMG[ballStage(i).id];if(!o)return null;
+  if((i+1)%10===0)return imgOk(o.gold);
+  return o.balls.length?imgOk(o.balls[i%o.balls.length]):null;
+}
 // 声の大きさゾーン（正規化レベル）
 const Z={low:.12,good:.32,loud:.88,max:1.15};
 
@@ -319,10 +386,10 @@ const orb=()=>{const R=Math.min(W*.15,H*.14);return{cx:W/2,cy:H*.47,R}};
 // ================= state =================
 let mode='title'; // title|count|play|result|records|settings
 const P={};
-function resetP(){Object.assign(P,{elapsed:0,points:0,gauge:0,gShow:0,balls:0,comboT:0,silT:0,maxCombo:0,singT:0,feverT:0,loudT:0,multStep:0,comboMile:0,shownScore:0,countPop:0,orbPulse:0,emitAcc:0,evT:rand(14,22),diff:cfg.diff})}
+function resetP(){Object.assign(P,{stageN:0,elapsed:0,points:0,gauge:0,gShow:0,balls:0,comboT:0,silT:0,maxCombo:0,singT:0,feverT:0,loudT:0,multStep:0,comboMile:0,shownScore:0,countPop:0,orbPulse:0,emitAcc:0,evT:rand(14,22),diff:cfg.diff})}
 resetP();
 let parts=[],rings=[],texts=[],flyers=[],tray=[];
-let shake=0,flash=0,flashColor='255,255,255',hueBase=260,rayRot=0,fwT=0,fwRate=0;
+let shake=0,flash=0,flashColor='255,255,255',hueBase=260,hueRun=260,rayRot=0,fwT=0,fwRate=0;
 let cd=null;
 
 const stars=[];
@@ -341,7 +408,7 @@ function burst(x,y,n,col,conf){
 }
 function addText(s,x,y,size,col,dur=1,vy=-40){texts.push({s,x,y,size,col,t:0,dur,vy})}
 function ring(x,y,r,v,w,col,max=.8){rings.push({x,y,r,v,w,col,life:0,max})}
-function ballColor(i){return (i+1)%10===0?GOLD:BALL_COLORS[i%BALL_COLORS.length]}
+function ballColor(i){if((i+1)%10===0)return GOLD;const b=ballStage(i).balls;return b[i%b.length]}
 
 
 // ================= カットイン・隕石・爆弾などの演出（見た目だけ。点数には影響しない） =================
@@ -352,22 +419,25 @@ const CUT_WORDS={
   3:['スーパータイム!!','パワー 2ばい!!','きらきら タイム!!']
 };
 const pick=a=>a[Math.floor(Math.random()*a.length)];
-// カットインの画像は cutin_images/ からランダムに選ぶ（一覧 list.json は GitHub Actions が自動で作る）
-let cutList=[],cutNext=null,cutLast='';
-fetch('cutin_images/list.json',{cache:'no-store'}).then(r=>r.json()).then(a=>{cutList=Array.isArray(a)?a:[];prepCutImage()}).catch(()=>{});
+// カットインの画像は いまのステージの stages/<id>/cutin/ から、無ければ cutin_images/ からランダムに選ぶ
+// （一覧 list.json は GitHub Actions が自動で作る）
+let cutBase=[],cutNext=null,cutLast='';
+fetch('cutin_images/list.json',{cache:'no-store'}).then(r=>r.json()).then(a=>{cutBase=(Array.isArray(a)?a:[]).map(n=>'cutin_images/'+encodeURIComponent(n));prepCutImage()}).catch(()=>{});
 function prepCutImage(){
-  if(!cutList.length)return;
-  let n;do{n=pick(cutList)}while(cutList.length>1&&n===cutLast);
-  const im=new Image();im.src='cutin_images/'+encodeURIComponent(n);cutNext={n,im};
+  const o=SIMG[curStage().id],list=o&&o.cut.length?o.cut:cutBase;
+  if(!list.length){cutNext=null;return}
+  let n;do{n=pick(list)}while(list.length>1&&n===cutLast);
+  const im=new Image();im.src=n;cutNext={n,im};
 }
+const cutWords=l=>{const w=curStage().words;return (w&&w[l])||CUT_WORDS[l]};
 function takeCutImage(){
   const c=cutNext;if(!c)return null;
   prepCutImage(); // 次の1枚を先に読み込んでおく
   if(c.im.complete&&c.im.naturalWidth){cutLast=c.n;return c.im}
   return null;
 }
-let cutins=[],meteors=[],bombs=[],premon=null,timers=[];
-function clearBigFx(){cutins=[];meteors=[];bombs=[];premon=null;timers=[]}
+let cutins=[],meteors=[],bombs=[],premon=null,timers=[],stageFx=null;
+function clearBigFx(){cutins=[];meteors=[];bombs=[];premon=null;timers=[];stageFx=null}
 function later(sec,fn){timers.push({t:sec,fn})}
 function cutIn(lvl,text,onEnd){
   cutins.push({lvl,text,t:0,dur:lvl===3?2.1:1.8,onEnd,img:takeCutImage()});
@@ -408,7 +478,17 @@ function drawBolt(x0,y0,x1,y1,w){
 function updateBigFx(dt,t){
   if(mode!=='play'&&mode!=='count'){if(cutins.length||meteors.length||bombs.length||premon)clearBigFx();return}
   // 前ぶれ → カットイン → 爆弾
-  if(premon){premon.t+=dt;if(premon.t>=premon.dur){const l=premon.lvl;premon=null;cutIn(l,pick(CUT_WORDS[l]),()=>afterCut(l))}}
+  if(premon){premon.t+=dt;if(premon.t>=premon.dur){const l=premon.lvl;premon=null;cutIn(l,pick(cutWords(l)),()=>afterCut(l))}}
+  // ステージ切り替え：絵が画面をおおったところで つぎのステージにする
+  if(stageFx){
+    const s=stageFx;s.t+=dt;
+    if(!s.swapped&&s.t>=.6){s.swapped=true;P.stageN=s.n;enterStage();flash=1;flashColor='255,255,255'}
+    if(s.t>=s.dur){
+      stageFx=null;const {cx,cy,R}=orb(),st=curStage();
+      for(let j=0;j<4;j++)ring(cx,cy,R*.5,(700+j*300)*U,14*U,st.balls[j%st.balls.length],1);
+      burst(cx,cy,240,st.accent,true);shake=Math.max(shake,18);
+    }
+  }
   for(const tm of timers){tm.t-=dt;if(tm.t<=0){tm.done=true;tm.fn()}}
   timers=timers.filter(tm=>!tm.done);
   for(const c of cutins){c.t+=dt}
@@ -532,17 +612,135 @@ function drawCutins(t){
   }
 }
 
+// ================= ステージ切り替えの演出 =================
+function startStageFx(){premon=null;cutins=[];stageFx={t:0,dur:3.4,n:P.stageN+1,swapped:false}}
+function coverImg(im,z,dx=0,dy=0){const s=Math.max(W/im.width,H/im.height)*z;g.drawImage(im,(W-im.width*s)/2+dx,(H-im.height*s)/2+dy,im.width*s,im.height*s)}
+function drawStageCard(st,s,t){
+  const p=s.t,im=stageImg(st,'card')||stageImg(st,'bg');
+  if(im)coverImg(im,1.02+.08*p/s.dur);
+  else{
+    const h=st.hue==null?260:st.hue;
+    const gr=g.createRadialGradient(W/2,H*.4,0,W/2,H*.4,Math.max(W,H)*.8);
+    gr.addColorStop(0,`hsl(${h},90%,62%)`);gr.addColorStop(.6,`hsl(${h+30},80%,30%)`);gr.addColorStop(1,`hsl(${h+60},70%,10%)`);
+    g.fillStyle=gr;g.fillRect(0,0,W,H);
+    st.balls.forEach((c,i)=>{const a=t*.6+i*TAU/st.balls.length;drawBall(W/2+Math.cos(a)*W*.3,H*.36+Math.sin(a)*H*.17,40*U,c,false,t)});
+  }
+  // 回る光
+  g.save();g.translate(W/2,H*.4);g.rotate(t*.3);g.globalCompositeOperation='lighter';g.fillStyle='rgba(255,255,255,.05)';
+  for(let i=0;i<14;i++){g.beginPath();g.moveTo(0,0);g.arc(0,0,Math.max(W,H),i*TAU/14,i*TAU/14+.1);g.fill()}
+  g.restore();
+  // 文字の下を すこし暗く
+  const sh=g.createLinearGradient(0,H*.45,0,H);sh.addColorStop(0,'rgba(10,0,30,0)');sh.addColorStop(1,'rgba(10,0,30,.75)');
+  g.fillStyle=sh;g.fillRect(0,H*.45,W,H*.55);
+  // 文字
+  const pop=easeOutBack(clamp((p-.45)/.35,0,1)),lap=Math.floor(s.n/STAGES.length);
+  g.save();g.textAlign='center';g.textBaseline='middle';g.lineJoin='round';
+  g.translate(W/2,H*.66);g.scale(pop,pop);
+  const top=`ステージ ${s.n%STAGES.length+1}`+(lap?`（${lap+1}しゅうめ）`:'');
+  g.font=`${Math.round(64*U)}px 'Dela Gothic One',sans-serif`;
+  g.lineWidth=12*U;g.strokeStyle='#1a0020';g.strokeText(top,0,-90*U);g.fillStyle='#fff';g.fillText(top,0,-90*U);
+  let sz=120*U;g.font=`${Math.round(sz)}px 'Dela Gothic One',sans-serif`;
+  const tw=g.measureText(st.name).width;if(tw>W*.9){sz*=W*.9/tw;g.font=`${Math.round(sz)}px 'Dela Gothic One',sans-serif`}
+  const fg=g.createLinearGradient(0,-sz/2,0,sz/2);fg.addColorStop(0,'#fff');fg.addColorStop(.5,'#ffe14d');fg.addColorStop(1,'#ff9a3c');
+  g.lineWidth=sz*.22;g.strokeStyle='#1a0020';g.strokeText(st.name,0,30*U);
+  g.lineWidth=sz*.09;g.strokeStyle=st.accent;g.strokeText(st.name,0,30*U);
+  g.shadowColor='#fff';g.shadowBlur=24;g.fillStyle=fg;g.fillText(st.name,0,30*U);
+  g.shadowBlur=0;g.globalAlpha=clamp((p-.9)/.3,0,1);
+  g.font=`900 ${Math.round(34*U)}px 'M PLUS Rounded 1c',sans-serif`;g.fillStyle='#3ff6ff';g.fillText('スーパータイム スタート！ パワー 2ばい！',0,130*U);
+  g.restore();
+}
+function drawStageFx(t){
+  const s=stageFx;if(!s)return;
+  // まんなかの球から 円が広がって絵が出てきて、さいごは球に すいこまれる
+  const {cx,cy}=orb(),maxR=Math.hypot(Math.max(cx,W-cx),Math.max(cy,H-cy))+10,inT=.6,outT=.55,p=s.t;
+  const rad=p<inT?Math.pow(p/inT,3)*maxR:p>s.dur-outT?Math.pow(Math.max(0,(s.dur-p)/outT),2)*maxR:maxR;
+  if(rad<1)return;
+  const st=stageAt(s.n);
+  g.save();g.beginPath();g.arc(cx,cy,rad,0,TAU);g.clip();drawStageCard(st,s,t);g.restore();
+  if(rad<maxR){
+    g.save();g.globalCompositeOperation='lighter';g.shadowColor=st.accent;g.shadowBlur=40;
+    g.beginPath();g.arc(cx,cy,rad,0,TAU);g.lineWidth=18*U;g.strokeStyle=st.accent;g.stroke();g.lineWidth=5*U;g.strokeStyle='#fff';g.stroke();
+    g.restore();
+  }
+}
+
+// ================= ステージごとの まわりの うごき（泡・花びら・おかし・雲） =================
+let amb=[];
+function spawnAmb(k,any){
+  const y=any?rand(0,H):null;
+  if(k==='sea')amb.push({k,x:rand(0,W),y:any?y:H+20*U,r:rand(3,14)*U,vx:0,vy:-rand(40,110)*U,ph:rand(0,TAU),rot:0,vr:0});
+  else if(k==='flower')amb.push({k,x:rand(-W*.2,W),y:any?y:-20*U,r:rand(8,16)*U,vx:rand(15,55)*U,vy:rand(35,80)*U,ph:rand(0,TAU),rot:rand(0,TAU),vr:rand(-2,2),col:pick(['#ffb3d9','#ff7ab8','#fff0f6','#ffd1e8','#ffe9a8'])});
+  else if(k==='sweets'){const candy=Math.random()<.15;amb.push({k,x:rand(0,W),y:any?y:-20*U,r:rand(6,12)*U*(candy?1.4:1),vx:0,vy:rand(60,140)*U,ph:0,rot:rand(0,TAU),vr:rand(-4,4),col:pick(stageAt(3).balls),candy})}
+  else if(k==='sky')amb.push({k,x:any?rand(-W*.1,W):-160*U,y:rand(H*.04,H*.92),r:rand(26,60)*U,vx:rand(12,34)*U,vy:0,ph:rand(0,TAU),rot:0,vr:0});
+}
+function enterStage(){
+  amb=[];const k=curStage().id,n={sea:25,flower:18,sweets:30,sky:9}[k]||0;
+  for(let i=0;i<n;i++)spawnAmb(k,true);
+  prepCutImage();P.evT=Math.max(P.evT,6);
+}
+function updateAmb(dt){
+  const k=curStage().id,rate={sea:9,flower:6,sweets:12,sky:.5}[k]||0;
+  const spd=mode==='play'?1+A.lvl*1.6+(P.feverT>0?.8:0):1;
+  if(rate&&(k!=='sky'||amb.length<12)&&Math.random()<dt*rate*spd)spawnAmb(k,false);
+  for(const a of amb){a.ph+=dt;a.x+=a.vx*spd*dt;a.y+=a.vy*spd*dt;a.rot+=a.vr*dt}
+  amb=amb.filter(a=>a.k===k&&a.y>-60*U&&a.y<H+60*U&&a.x<W+200*U);
+}
+function drawAmb(){
+  if(!amb.length)return;
+  g.save();g.lineCap='round';
+  for(const a of amb){
+    if(a.k==='sea'){
+      const x=a.x+Math.sin(a.ph*2)*8*U;
+      g.globalAlpha=.6;g.strokeStyle='#c8f8ff';g.lineWidth=Math.max(1,a.r*.15);g.fillStyle='rgba(200,248,255,.15)';
+      g.beginPath();g.arc(x,a.y,a.r,0,TAU);g.fill();g.stroke();
+      g.globalAlpha=.9;g.fillStyle='#fff';g.beginPath();g.arc(x-a.r*.35,a.y-a.r*.35,a.r*.22,0,TAU);g.fill();
+    }else if(a.k==='flower'){
+      g.globalAlpha=.85;g.fillStyle=a.col;g.save();g.translate(a.x+Math.sin(a.ph*1.5)*20*U,a.y);g.rotate(a.rot);
+      g.scale(1,.35+.65*Math.abs(Math.cos(a.ph*2.2)));g.beginPath();g.ellipse(0,0,a.r,a.r*.55,0,0,TAU);g.fill();g.restore();
+    }else if(a.k==='sweets'){
+      g.globalAlpha=.9;g.save();g.translate(a.x,a.y);g.rotate(a.rot);
+      if(a.candy){g.fillStyle=a.col;g.beginPath();g.arc(0,0,a.r,0,TAU);g.fill();g.strokeStyle='rgba(255,255,255,.85)';g.lineWidth=a.r*.25;g.beginPath();g.arc(0,0,a.r*.55,0,Math.PI*1.3);g.stroke()}
+      else{g.strokeStyle=a.col;g.lineWidth=a.r*.45;g.beginPath();g.moveTo(-a.r*.6,0);g.lineTo(a.r*.6,0);g.stroke()}
+      g.restore();
+    }else if(a.k==='sky'){
+      g.globalAlpha=.28;g.fillStyle='#fff';const r=a.r;g.beginPath();
+      for(const [dx,dy,k] of [[0,0,1],[.9,.15,.75],[-.9,.2,.65],[.2,-.5,.7]]){g.moveTo(a.x+dx*r+k*r,a.y+dy*r);g.arc(a.x+dx*r,a.y+dy*r,k*r,0,TAU)}
+      g.fill();
+    }
+  }
+  g.restore();
+}
+// 背景の上に重ねる ステージの かざり（海の光のすじ・空のにじ）
+function drawStageBack(t,st,inPlay){
+  if(st.id==='sea'){
+    g.save();g.globalCompositeOperation='lighter';
+    const lg=g.createLinearGradient(0,0,0,H);lg.addColorStop(0,'rgba(160,240,255,.13)');lg.addColorStop(1,'rgba(160,240,255,0)');g.fillStyle=lg;
+    for(let i=0;i<6;i++){
+      const x=W*(.08+i*.17)+Math.sin(t*.4+i*1.7)*W*.04,w=W*(.05+.03*Math.sin(i*2.3));
+      g.beginPath();g.moveTo(x-w/2,0);g.lineTo(x+w/2,0);g.lineTo(x+w*1.5+W*.08,H);g.lineTo(x-w*.5+W*.08,H);g.closePath();g.fill();
+    }
+    g.restore();
+  }else if(st.id==='sky'){
+    const rc=['#ff4d4d','#ff9a3c','#ffe14d','#5dff8a','#3ff6ff','#5c8bff','#b45cff'],R0=Math.max(W,H)*.62,bw=R0*.035;
+    g.save();g.globalCompositeOperation='lighter';g.globalAlpha=.16+(inPlay?A.lvl*.18:0);g.lineWidth=bw;
+    rc.forEach((c,i)=>{g.strokeStyle=c;g.beginPath();g.arc(W/2,H*1.08,R0-i*bw,Math.PI,TAU);g.stroke()});
+    g.restore();
+  }
+}
+
 function getBall(){
-  P.balls++;const i=P.balls-1;const gold=P.balls%10===0;const col=ballColor(i);
+  P.balls++;const i=P.balls-1;const gold=P.balls%10===0;const col=ballColor(i),img=ballImg(i),st=ballStage(i);
   const {cx,cy,R}=orb();
   flash=gold?1:.65;flashColor=gold?'255,225,120':'255,255,255';shake=Math.max(shake,gold?30:16);P.orbPulse=1;
   for(let k=0;k<3;k++)ring(cx,cy,R*.8,900+k*380,16-k*4,col,.9);
   burst(cx,cy,gold?300:160,col,true);
-  const words=['GET!!','ゲット!!','ナイス!!','すごい!!','いいね!!','さいこう!!','やったー!!'];
-  if(gold)addText('ゴールドだま GET!!',cx,cy,110*U,'rainbow',1.4,-30);
+  const words=st.get||['GET!!','ゲット!!','ナイス!!','すごい!!','いいね!!','さいこう!!','やったー!!'];
+  if(gold)addText('ステージ クリア!!',cx,cy,110*U,'rainbow',1.4,-30);
   else addText(words[i%words.length],cx,cy,120*U,col,1.1,-60);
-  flyers.push({i,col,gold,t:0,dur:.8,x0:cx,y0:cy});
-  if(P.balls%5===0){
+  flyers.push({i,col,gold,img,t:0,dur:.8,x0:cx,y0:cy});
+  // 金の玉（10こめ）で ステージクリア。スーパータイムも はじまる
+  if(gold){P.feverT=8;later(.75,startStageFx)}
+  else if(P.balls%5===0){
     const wasFever=P.feverT>0;P.feverT=8;
     if(!wasFever){cutIn(3,pick(CUT_WORDS[3]));burst(cx,H*.24,120,'#fff',false)}
     else cutIn(2,'スーパータイム つづく!!');
@@ -556,16 +754,24 @@ function trayLayout(n){
   return{s,gap,per};
 }
 function slotPos(i,n){const{s,gap,per}=trayLayout(n);const r=Math.floor(i/per),c=i%per;return{x:30*U+s/2+c*(s+gap),y:24*U+s/2+r*(s+gap),s}}
-function drawBall(x,y,r,col,gold,t){
+function drawBall(x,y,r,col,gold,t,img){
   g.save();
   g.shadowColor=col;g.shadowBlur=gold?30:14;
-  let gr=g.createRadialGradient(x-r*.35,y-r*.4,r*.08,x,y,r);
-  gr.addColorStop(0,'#fff');gr.addColorStop(.28,col);gr.addColorStop(1,col);
-  g.fillStyle=gr;g.beginPath();g.arc(x,y,r,0,TAU);g.fill();
-  g.shadowBlur=0;
-  gr=g.createRadialGradient(x,y,r*.5,x,y,r);gr.addColorStop(0,'rgba(0,0,0,0)');gr.addColorStop(1,'rgba(20,0,50,.5)');
-  g.fillStyle=gr;g.beginPath();g.arc(x,y,r,0,TAU);g.fill();
-  g.fillStyle='rgba(255,255,255,.75)';g.beginPath();g.ellipse(x-r*.32,y-r*.42,r*.3,r*.16,-.6,0,TAU);g.fill();
+  if(img){
+    // 画像の玉：まるく切りぬいて使う（画像の四すみの背景は見えない）
+    g.fillStyle=col;g.beginPath();g.arc(x,y,r,0,TAU);g.fill();g.shadowBlur=0;
+    g.save();g.beginPath();g.arc(x,y,r,0,TAU);g.clip();
+    const s=Math.max(r*2/img.width,r*2/img.height)*1.1;g.drawImage(img,x-img.width*s/2,y-img.height*s/2,img.width*s,img.height*s);
+    g.restore();
+  }else{
+    let gr=g.createRadialGradient(x-r*.35,y-r*.4,r*.08,x,y,r);
+    gr.addColorStop(0,'#fff');gr.addColorStop(.28,col);gr.addColorStop(1,col);
+    g.fillStyle=gr;g.beginPath();g.arc(x,y,r,0,TAU);g.fill();
+    g.shadowBlur=0;
+    gr=g.createRadialGradient(x,y,r*.5,x,y,r);gr.addColorStop(0,'rgba(0,0,0,0)');gr.addColorStop(1,'rgba(20,0,50,.5)');
+    g.fillStyle=gr;g.beginPath();g.arc(x,y,r,0,TAU);g.fill();
+    g.fillStyle='rgba(255,255,255,.75)';g.beginPath();g.ellipse(x-r*.32,y-r*.42,r*.3,r*.16,-.6,0,TAU);g.fill();
+  }
   if(gold){g.globalCompositeOperation='lighter';g.fillStyle='rgba(255,255,220,.9)';starPath(x+r*.55,y-r*.55,r*.55*(0.7+0.3*Math.sin(t*8)));g.fill()}
   g.restore();
 }
@@ -586,7 +792,7 @@ function updatePlay(dt,t){
     addText(`${miles[P.comboMile]} COMBO!!`,W*.5,H*.33,100*U,'rainbow',1.3,-40);
     burst(W*.25,H*.4,80,'#ffe14d',true);burst(W*.75,H*.4,80,'#ff4fd8',true);P.comboMile++;
   }
-  if(singing&&!premon&&!cutins.length&&!bombs.length){P.evT-=dt;if(P.evT<=0){P.evT=rand(22,40);premon={t:0,dur:1.3,lvl:Math.random()<.65?1:2}}}
+  if(singing&&!premon&&!cutins.length&&!bombs.length&&!stageFx){P.evT-=dt;if(P.evT<=0){P.evT=rand(22,40);premon={t:0,dur:1.3,lvl:Math.random()<.65?1:2}}}
   const mult=(1+P.multStep*.25)*(P.feverT>0?2:1);
   const gain=gainOf(A.lvl);
   const inc=gain*mult*dt;
@@ -636,7 +842,7 @@ function updateFx(dt,t){
   texts=texts.filter(x=>x.t<x.dur);
   for(const f of flyers){
     f.t+=dt/f.dur;
-    if(f.t>=1){tray[f.i]={col:f.col,gold:f.gold,pop:1};P.countPop=1;
+    if(f.t>=1){tray[f.i]={col:f.col,gold:f.gold,img:f.img,pop:1};P.countPop=1;
       const sp=slotPos(f.i,P.balls);burst(sp.x,sp.y,24,f.col,false);ring(sp.x,sp.y,sp.s*.4,300,4,f.col,.4)}
   }
   flyers=flyers.filter(f=>f.t<1);
@@ -646,7 +852,9 @@ function updateFx(dt,t){
   if(P.gauge<P.gShow-.3)P.gShow=0;
   P.gShow+=(P.gauge-P.gShow)*(1-Math.exp(-dt*10));
   const sc=Math.round(P.points*100);P.shownScore+=Math.ceil((sc-P.shownScore)*Math.min(1,dt*8));if(P.shownScore>sc)P.shownScore=sc;
-  hueBase+=dt*(12+A.lvl*70+(P.feverT>0&&mode==='play'?220:0));
+  hueRun+=dt*(12+A.lvl*70+(P.feverT>0&&mode==='play'?220:0));
+  const hs=curStage();hueBase=hs.hue==null?hueRun:hs.hue+Math.sin(hueRun/45)*hs.hueR;
+  updateAmb(dt);
   rayRot+=dt*(.15+(mode==='play'?A.lvl*2.2:0)+(P.feverT>0?1.5:0));
   // 結果画面の花火 / タイトルのきらきら
   if(mode==='result'||mode==='ranking'){fwT-=dt;if(fwT<=0){fwT=fwRate;const c=BALL_COLORS[Math.floor(rand(0,BALL_COLORS.length))];const x=rand(W*.08,W*.92),y=rand(H*.08,H*.5);burst(x,y,90,c,Math.random()<.4);ring(x,y,10,500,4,c,.6)}}
@@ -657,13 +865,24 @@ function updateFx(dt,t){
 
 // ================= draw =================
 function drawBG(t){
-  const {cx,cy}=orb();
+  const {cx,cy}=orb(),st=curStage();
   const inPlay=mode==='play'||mode==='count';
-  const gr=g.createRadialGradient(cx,cy,0,cx,cy,Math.max(W,H)*.8);
-  gr.addColorStop(0,`hsl(${hueBase%360},85%,${14+(inPlay?A.lvl*16:4)}%)`);
-  gr.addColorStop(.55,`hsl(${(hueBase+50)%360},70%,7%)`);
-  gr.addColorStop(1,'#04020c');
-  g.fillStyle=gr;g.fillRect(0,0,W,H);
+  const im=stageImg(st,'bg');
+  if(im){
+    coverImg(im,1.06+.03*Math.sin(t*.13),Math.sin(t*.09)*W*.015);
+    // エフェクトが映えるよう 少し暗くする（声が出ていると まんなかが明るくなる）
+    const vg=g.createRadialGradient(cx,cy,0,cx,cy,Math.max(W,H)*.75);
+    vg.addColorStop(0,`rgba(5,2,20,${.25-(inPlay?A.lvl*.2:0)})`);vg.addColorStop(1,'rgba(5,2,20,.7)');
+    g.fillStyle=vg;g.fillRect(0,0,W,H);
+  }else{
+    const L=st.light||[14,7];
+    const gr=g.createRadialGradient(cx,cy,0,cx,cy,Math.max(W,H)*.8);
+    gr.addColorStop(0,`hsl(${hueBase%360},${st.sat||85}%,${L[0]+(inPlay?A.lvl*16:4)}%)`);
+    gr.addColorStop(.55,`hsl(${(hueBase+(st.hue==null?50:20))%360},70%,${L[1]}%)`);
+    gr.addColorStop(1,'#04020c');
+    g.fillStyle=gr;g.fillRect(0,0,W,H);
+  }
+  drawStageBack(t,st,inPlay);
   if(P.feverT>0&&mode==='play'){
     g.save();g.translate(cx,cy);g.rotate(t*.7);g.globalCompositeOperation='lighter';
     const L=Math.max(W,H);
@@ -727,7 +946,8 @@ function drawOrb(t){
   const a0=-Math.PI/2,a1=a0+TAU*clamp(P.gShow,0,1);
   if(P.gShow>.002){
     let st;
-    if(g.createConicGradient){st=g.createConicGradient(a0,cx,cy);for(let i=0;i<=6;i++)st.addColorStop(i/6,`hsl(${hueBase+i*60},100%,62%)`)}else st='#ff4fd8';
+    const span=curStage().span||360;
+    if(g.createConicGradient){st=g.createConicGradient(a0,cx,cy);for(let i=0;i<=6;i++)st.addColorStop(i/6,`hsl(${hueBase+(i/6-.5)*span},100%,62%)`)}else st='#ff4fd8';
     g.save();g.strokeStyle=st;g.lineWidth=lw*(near?1+.15*Math.sin(t*25):1);g.shadowColor=`hsl(${hueBase},100%,65%)`;g.shadowBlur=near?50:30;
     g.beginPath();g.arc(cx,cy,rr,a0,a1);g.stroke();g.restore();
     const tx=cx+Math.cos(a1)*rr,ty=cy+Math.sin(a1)*rr;
@@ -735,9 +955,21 @@ function drawOrb(t){
   }
   // コア
   const pr=R*(1+lv*.2+P.orbPulse*.25+Math.sin(t*7)*.015*(1+lv*4));
-  gr=g.createRadialGradient(cx-pr*.2,cy-pr*.25,pr*.05,cx,cy,pr);
-  gr.addColorStop(0,'#fff');gr.addColorStop(.35,`hsl(${hueBase+20},100%,72%)`);gr.addColorStop(.85,`hsl(${hueBase+70},100%,45%)`);gr.addColorStop(1,`hsl(${hueBase+90},100%,30%)`);
-  g.save();g.shadowColor=`hsl(${hueBase},100%,70%)`;g.shadowBlur=60;g.fillStyle=gr;g.beginPath();g.arc(cx,cy,pr,0,TAU);g.fill();g.restore();
+  const oim=stageImg(curStage(),'orb');
+  if(oim){
+    // 画像の球：まるく切りぬき、声が大きいほど明るく光らせる
+    g.save();g.shadowColor=`hsl(${hueBase},100%,70%)`;g.shadowBlur=60;g.fillStyle=`hsl(${hueBase},90%,50%)`;g.beginPath();g.arc(cx,cy,pr,0,TAU);g.fill();g.restore();
+    g.save();g.beginPath();g.arc(cx,cy,pr,0,TAU);g.clip();
+    const s=pr*2.2/Math.min(oim.width,oim.height);g.drawImage(oim,cx-oim.width*s/2,cy-oim.height*s/2,oim.width*s,oim.height*s);
+    g.globalCompositeOperation='lighter';g.globalAlpha=clamp(lv*.35+P.orbPulse*.4,0,1);
+    const lg=g.createRadialGradient(cx,cy,0,cx,cy,pr);lg.addColorStop(0,'rgba(255,255,255,.8)');lg.addColorStop(1,'rgba(255,255,255,0)');
+    g.fillStyle=lg;g.fillRect(cx-pr,cy-pr,pr*2,pr*2);
+    g.restore();
+  }else{
+    gr=g.createRadialGradient(cx-pr*.2,cy-pr*.25,pr*.05,cx,cy,pr);
+    gr.addColorStop(0,'#fff');gr.addColorStop(.35,`hsl(${hueBase+20},100%,72%)`);gr.addColorStop(.85,`hsl(${hueBase+70},100%,45%)`);gr.addColorStop(1,`hsl(${hueBase+90},100%,30%)`);
+    g.save();g.shadowColor=`hsl(${hueBase},100%,70%)`;g.shadowBlur=60;g.fillStyle=gr;g.beginPath();g.arc(cx,cy,pr,0,TAU);g.fill();g.restore();
+  }
   g.fillStyle='rgba(255,255,255,.45)';g.beginPath();g.ellipse(cx-pr*.35,cy-pr*.45,pr*.35,pr*.17,-.5,0,TAU);g.fill();
   // パーセント
   const pct=Math.floor(clamp(P.gShow,0,.999)*100);
@@ -818,16 +1050,25 @@ function drawMeter(t){
 function drawHUD(t){
   const {cx,cy,R}=orb();
   // トレイ
-  for(let i=0;i<tray.length;i++){const b=tray[i];if(!b)continue;const s=slotPos(i,P.balls);drawBall(s.x,s.y,s.s/2*(1+b.pop*.7),b.col,b.gold,t)}
+  for(let i=0;i<tray.length;i++){const b=tray[i];if(!b)continue;const s=slotPos(i,P.balls);drawBall(s.x,s.y,s.s/2*(1+b.pop*.7),b.col,b.gold,t,b.img)}
   // スコア
   g.save();g.textAlign='right';g.textBaseline='alphabetic';
   g.font=`900 ${Math.round(22*U)}px 'M PLUS Rounded 1c',sans-serif`;g.fillStyle='rgba(255,255,255,.75)';g.fillText(curCls,W-30*U,40*U);
   g.font=`${Math.round(58*U)}px 'Dela Gothic One',sans-serif`;g.fillStyle='#ffe14d';g.shadowColor='#ff9a3c';g.shadowBlur=20;g.fillText(P.shownScore.toLocaleString(),W-30*U,104*U);g.shadowBlur=0;
   const sec=Math.floor(P.elapsed);g.font=`900 ${Math.round(26*U)}px 'M PLUS Rounded 1c',sans-serif`;g.fillStyle='#fff';g.fillText(`${Math.floor(sec/60)}:${pad(sec%60)}`,W-30*U,142*U);
+  // いまのステージと、つぎの せかいまでの 玉（10こ。さいごは金の玉）
+  const cs=curStage();g.font=`900 ${Math.round(22*U)}px 'M PLUS Rounded 1c',sans-serif`;g.fillStyle=cs.accent;g.shadowColor=cs.accent;g.shadowBlur=12;
+  g.fillText(`ステージ${P.stageN%STAGES.length+1} ${cs.short}`,W-30*U,178*U);g.shadowBlur=0;
+  const got=P.balls%10;
+  for(let i=0;i<10;i++){
+    const x=W-37*U-(9-i)*20*U,y=200*U;g.beginPath();g.arc(x,y,7*U,0,TAU);
+    g.fillStyle=i<got?ballColor(P.balls-got+i):'rgba(255,255,255,.18)';g.fill();
+    if(i===9){g.lineWidth=2*U;g.strokeStyle=GOLD;g.stroke()}
+  }
   g.restore();
   // 玉カウント（右）
   const bx=W-150*U,by=cy,br=58*U*(1+P.countPop*.35);
-  drawBall(bx-br-30*U,by,br,P.balls?ballColor(P.balls-1):'#888',false,t);
+  drawBall(bx-br-30*U,by,br,P.balls?ballColor(P.balls-1):'#888',false,t,P.balls?ballImg(P.balls-1):null);
   g.save();g.textAlign='left';g.textBaseline='middle';g.font=`${Math.round(90*U*(1+P.countPop*.3))}px 'Dela Gothic One',sans-serif`;
   g.lineWidth=10*U;g.strokeStyle='rgba(40,0,70,.8)';g.lineJoin='round';g.strokeText('×'+P.balls,bx-20*U,by);g.fillStyle='#fff';g.fillText('×'+P.balls,bx-20*U,by);g.restore();
   // 状態（上）
@@ -877,7 +1118,7 @@ function drawFlyers(t){
     const x=u*u*f.x0+2*u*e*c1x+e*e*sp.x,y=u*u*f.y0+2*u*e*c1y+e*e*sp.y;
     const r=(1-e)*Math.min(W,H)*.07+e*sp.s/2;
     parts.push({x,y,vx:rand(-40,40),vy:rand(-40,40),life:0,max:.45,size:r*.35,col:f.col,h:0,type:'star',drag:.9,gr:0,rot:rand(0,TAU),vr:5});
-    drawBall(x,y,r,f.col,f.gold,t);
+    drawBall(x,y,r,f.col,f.gold,t,f.img);
   }
 }
 function drawTexts(){
@@ -912,7 +1153,8 @@ function frame(now){
   if(mode==='play')updatePlay(dt,t);
   if(mode==='settings')updateMeterUI();
   updateFx(dt,t);updateBigFx(dt,t);
-  drawBG(t);if(mode==='title')drawTitleFx(t);drawStars(dt);
+  drawBG(t);if(mode==='title')drawTitleFx(t);
+  if(curStage().id==='space')drawStars(dt);else drawAmb();
   g.save();
   if(shake>0)g.translate(rand(-shake,shake),rand(-shake,shake));
   const inGame=mode==='play'||mode==='count';
@@ -924,6 +1166,7 @@ function frame(now){
   drawTexts();
   if(inGame){drawPremon(t);drawCutins(t)}
   g.restore();
+  if(inGame)drawStageFx(t);
   if(flash>0){g.fillStyle=`rgba(${flashColor},${flash*.55})`;g.fillRect(0,0,W,H)}
   requestAnimationFrame(frame);
 }
@@ -942,6 +1185,8 @@ function refreshTitle(){
   $('#clsBtns').innerHTML=CLASSES.map(c=>`<button class="clsBtn${c===curCls?' on':''}" data-c="${c}">${c}</button>`).join('');
   $('#startBtn').disabled=!curCls;
   const L='うたパワー！';$('#logo').innerHTML=[...L].map((c,i)=>`<span style="animation-delay:${i*.12}s">${c}</span>`).join('');
+  $('#stageRow').innerHTML='<span class="cap">玉を 10こ あつめると つぎの せかいへ！</span>'+
+    STAGES.map((s,i)=>`<span class="schip" style="--a:${s.accent}">${i+1}. ${s.short}</span>`).join('<span class="sarrow">▶</span>');
 }
 async function startGame(){
   if(!curCls){$('#tHint').textContent='さきに クラスを えらんでね';return}
@@ -950,7 +1195,8 @@ async function startGame(){
   if(!recCache[curCls])fetchRecords(curCls);
   const ok=await initMic();
   if(!ok){$('#tHint').textContent='マイクが使えませんでした。ブラウザのマイクの許可を確認してください（「せってい」のデモモードでも試せます）';return}
-  resetP();parts=[];rings=[];texts=[];flyers=[];tray=[];clearBigFx();
+  loadStageAssets();
+  resetP();parts=[];rings=[];texts=[];flyers=[];tray=[];clearBigFx();enterStage();
   show(null);mode='count';
   cd={t:cfg.demo?1.6:0,samples:[],step:-1,floorSet:false};
 }
@@ -974,7 +1220,14 @@ function showResult(rec,prev){
   show('result');
   const box=$('#rBalls');box.innerHTML='';
   const n=rec.balls,step=Math.min(90,2600/Math.max(1,n));
-  for(let i=0;i<n;i++){const d=document.createElement('div');d.className='rb'+((i+1)%10===0?' gold':'');d.style.setProperty('--c',ballColor(i));d.style.animationDelay=(300+i*step)+'ms';box.append(d)}
+  for(let i=0;i<n;i++){
+    const d=document.createElement('div');d.className='rb'+((i+1)%10===0?' gold':'');d.style.setProperty('--c',ballColor(i));d.style.animationDelay=(300+i*step)+'ms';
+    const im=ballImg(i);if(im)d.style.background=`url("${im.src}") center/110% no-repeat`;
+    box.append(d);
+  }
+  const k=Math.floor(n/10),ks=stageAt(k),lap=Math.floor(k/STAGES.length);
+  $('#rStage').innerHTML=k?`<span class="up">ステージ${k%STAGES.length+1}「${ks.name}」まで いけた！</span>${lap?`（${lap+1}しゅうめ）`:''} <span class="sub">つぎまで あと${10-n%10}こ</span>`
+    :`<span class="sub">あと ${10-n}こで つぎの せかい「${stageAt(1).name}」へ！</span>`;
   countUp($('#rBallN'),n,Math.max(800,n*step));
   countUp($('#rScore'),rec.score,1600,v=>v.toLocaleString());
   countUp($('#rCombo'),rec.maxCombo,1200);
@@ -995,7 +1248,7 @@ function showResult(rec,prev){
   fwRate=isBest?.12:.35;fwT=0;
   if(isBest&&prev&&prev.length){flash=1;shake=20}
 }
-function backTitle(){refreshTitle();show('title')}
+function backTitle(){P.stageN=0;amb=[];refreshTitle();show('title')}
 
 // ---- records（スプレッドシートから）
 let recView=null;const recCache={};
