@@ -34,10 +34,6 @@ canvas#cv{position:fixed;inset:0;width:100%;height:100%;display:block}
 .card{background:var(--panel);border:2px solid var(--line);border-radius:calc(var(--u) * 26);padding:calc(var(--u) * 18) calc(var(--u) * 28);backdrop-filter:blur(6px);box-shadow:0 0 50px rgba(123,92,255,.4)}
 .goldCard{border:2px solid rgba(255,214,90,.55);box-shadow:0 0 0 1px rgba(255,255,255,.08) inset,0 0 50px rgba(255,180,60,.25),0 0 80px rgba(123,92,255,.35)}
 .row{display:flex;gap:calc(var(--u) * 14);align-items:center;flex-wrap:wrap;justify-content:center}
-label.f{font-weight:900;font-size:22px;color:var(--sub)}
-input[type=text],select{font:inherit;font-weight:800;font-size:20px;padding:8px 14px;border-radius:14px;border:2px solid var(--line);background:rgba(0,0,0,.4);color:#fff;min-width:200px}
-select option{color:#000}
-.chip{font-family:'Dela Gothic One',sans-serif;font-size:30px;padding:4px 20px;border-radius:999px;background:linear-gradient(90deg,#3ff6ff,#7b5cff);color:#fff;text-shadow:0 2px 0 rgba(0,0,0,.3)}
 .btn{font-family:'Dela Gothic One',sans-serif;font-size:max(22px,calc(var(--u) * 52));color:#fff;border:3px solid #fff3b0;border-radius:999px;padding:.25em 1.5em;cursor:pointer;position:relative;overflow:hidden;
   background:linear-gradient(90deg,#ff4fd8,#ff9a3c,#ffe14d);box-shadow:0 calc(var(--u) * 8) 0 #9b1f86,0 0 44px rgba(255,79,216,.75),0 0 90px rgba(255,200,80,.35);text-shadow:0 3px 0 rgba(0,0,0,.25);transition:transform .08s}
 .btn:active{transform:translateY(6px);box-shadow:0 2px 0 #9b1f86}
@@ -72,7 +68,7 @@ select option{color:#000}
 .cmp .sub{font-size:.62em;color:var(--sub);font-weight:800}
 #rSend{font-size:max(12px,calc(var(--u) * 15))}
 #rSend:empty{display:none}
-/* records & settings */
+/* records */
 .h2{font-family:'Dela Gothic One',sans-serif;font-size:calc(var(--u) * 56);line-height:1.1;text-shadow:0 0 22px rgba(63,246,255,.7)}
 .wide{width:min(1200px,96vw);display:flex;flex-direction:column;gap:calc(var(--u) * 14)}
 .chart{display:flex;align-items:flex-end;gap:10px;height:calc(var(--u) * 230);padding:calc(var(--u) * 26) 8px 0;border-bottom:2px solid var(--line)}
@@ -87,35 +83,19 @@ select option{color:#000}
 table{width:100%;border-collapse:collapse;font-weight:800;font-size:max(13px,calc(var(--u) * 17))}
 th,td{padding:calc(var(--u) * 7) 10px;border-bottom:1px solid var(--line);text-align:center;white-space:nowrap}
 th{color:var(--sub);position:sticky;top:0;background:#1d1046}
-.set{width:min(900px,96vw);display:flex;flex-direction:column;gap:18px}
-.srow{display:flex;flex-direction:column;gap:6px}
-.srow>div{display:flex;gap:14px;align-items:center;flex-wrap:wrap}
-.srow label.t{font-weight:900;font-size:20px}
-input[type=range]{width:320px;accent-color:#ff4fd8}
-.meterH{position:relative;width:min(560px,80vw);height:34px;border-radius:10px;overflow:hidden;background:#000}
-.meterH .z{position:absolute;top:0;bottom:0;opacity:.45}
-#mBar{position:absolute;left:0;top:0;bottom:0;width:0;background:rgba(255,255,255,.85);box-shadow:0 0 14px #fff;transition:width .05s}
-#mLabel{font-weight:900;font-size:22px;min-width:12em}
-#settings{justify-content:flex-start}
 /* class select */
 .clsBtn{font-family:'Dela Gothic One',sans-serif;font-size:max(20px,calc(var(--u) * 40));color:#fff;min-width:3.3em;padding:.2em .55em;border-radius:calc(var(--u) * 22);border:3px solid var(--line);background:linear-gradient(180deg,rgba(255,255,255,.14),rgba(255,255,255,.04));cursor:pointer;transition:transform .12s}
 .clsBtn:hover{transform:translateY(-3px)}
 .clsBtn.on{border-color:#fff3b0;background:linear-gradient(135deg,#3ff6ff,#7b5cff 55%,#ff4fd8);box-shadow:0 0 34px rgba(63,246,255,.8),0 0 0 3px rgba(255,214,90,.5);transform:scale(1.12);animation:pulse 1s ease-in-out infinite}
 .btn:disabled{filter:grayscale(1) brightness(.6);animation:none;cursor:default;box-shadow:0 calc(var(--u) * 8) 0 #444;border-color:#999}
 .btn:disabled::after{display:none}
-#setBtn{position:fixed;right:14px;bottom:10px;z-index:3;background:none;border:0;color:rgba(255,255,255,.35);font-size:28px;cursor:pointer;display:none}
-#setBtn.on{display:block}
-#setBtn:hover{color:#fff}
-/* pin */
-.pinCard{display:flex;flex-direction:column;align-items:center;gap:calc(var(--u) * 16)}
-.pinDots{display:flex;gap:18px}
-.pinDots i{width:24px;height:24px;border-radius:50%;border:3px solid #fff;display:block}
-.pinDots i.f{background:#fff;box-shadow:0 0 14px #fff}
-.pad{display:grid;grid-template-columns:repeat(3,max(56px,calc(var(--u) * 84)));gap:max(8px,calc(var(--u) * 12))}
-.pad button{height:max(48px,calc(var(--u) * 72));font-family:'Dela Gothic One',sans-serif;font-size:max(22px,calc(var(--u) * 32));color:#fff;border-radius:18px;border:2px solid var(--line);background:rgba(255,255,255,.1);cursor:pointer}
-.pad button:active{background:rgba(255,255,255,.3)}
-.shake{animation:shk .4s}
-@keyframes shk{20%,60%{transform:translateX(-14px)}40%,80%{transform:translateX(14px)}}
+/* マイク感度（プレイ中に ↑↓ キーか ＋− ボタンで変える） */
+#sensBox{position:fixed;left:calc(var(--u) * 20);bottom:calc(var(--u) * 16);z-index:3;display:none;align-items:center;gap:calc(var(--u) * 8);opacity:.6;transition:opacity .3s;font-weight:900;font-size:max(13px,calc(var(--u) * 17))}
+#sensBox.on{display:flex}
+#sensBox:hover,#sensBox.hot{opacity:1}
+#sensBox b{font-family:'Dela Gothic One',sans-serif;font-size:1.4em;color:var(--yel);display:inline-block;min-width:1.6em;text-align:center}
+#sensBox .btn2{padding:calc(var(--u) * 4) calc(var(--u) * 16)}
+#sensBox small{color:var(--sub);font-weight:800}
 /* ranking */
 .tab{font-family:'Dela Gothic One',sans-serif;font-size:max(16px,calc(var(--u) * 26));color:#fff;background:rgba(255,255,255,.08);border:2px solid var(--line);border-radius:999px;padding:calc(var(--u) * 5) calc(var(--u) * 28);cursor:pointer}
 .tab.on{background:linear-gradient(90deg,#ff4fd8,#7b5cff);border-color:transparent;box-shadow:0 0 24px rgba(255,79,216,.6)}
@@ -201,36 +181,8 @@ input[type=range]{width:320px;accent-color:#ff4fd8}
   <div class="row"><button class="btn2" id="recBack">もどる</button></div>
 </div>
 
-<!-- せってい -->
-<div id="settings" class="screen">
-  <div class="h2">せってい（先生用）</div>
-  <div class="card set">
-    <div class="srow"><div><label class="t" for="sDiff">むずかしさ</label><select id="sDiff"></select></div>
-      <span class="small">玉1こに必要なパワーの量です。日ごとに比べるなら、途中で変えないのがおすすめです（記録は同じむずかしさ同士で比べます）。</span></div>
-    <div class="srow"><div><label class="t" for="sRange">マイク感度</label><span class="small">よく反応</span><input type="range" id="sRange" min="12" max="50" step="1"><span class="small">反応ひかえめ</span></div>
-      <span class="small">全クラス共通です。歌ってみて、ちょうどいい声のときに<b style="color:#5dff8a">緑ゾーン</b>に入るよう調整してください。赤ゾーンは「大きすぎ」で、パワーが伸びにくくなります。</span></div>
-    <div class="srow"><div><button class="btn2" id="micTest">マイクテスト</button><div class="meterH" id="meterH"><div id="mBar"></div></div></div><span id="mLabel" class="small"></span></div>
-    <div class="srow"><div><label class="t"><input type="checkbox" id="sDemo"> デモモード</label></div>
-      <span class="small">マイクを使わずに動作を確認できます（このページを開いている間だけ）。プレイ中にスペースキー（またはマウス）を押している間は「歌っている」、Shift＋スペースで「大きすぎ」になります。</span></div>
-    <div class="srow"><span class="small">使い方のコツ：伴奏をスピーカーで流す場合は、前奏が始まってからスタートを押すと、伴奏の音を基準にして測れます。</span></div>
-    <div class="srow"><span class="small">設定と記録は すべてスプレッドシートに 保存されます（この端末には 保存しません）。</span></div>
-  </div>
-  <div class="row"><button class="btn2" id="saveSet">ほぞんする</button><span class="small" id="saveMsg"></span></div>
-  <button class="btn2" id="setBack">もどる</button>
-</div>
-
 <button class="btn2" id="stopBtn">おわる ■</button>
-<button id="setBtn" title="せってい（先生用）">⚙</button>
-
-<!-- PIN -->
-<div id="pin" class="screen">
-  <div class="card pinCard" id="pinCard">
-    <div class="cap">せってい（先生用）　PINを いれてください</div>
-    <div class="pinDots" id="pinDots"><i></i><i></i><i></i><i></i></div>
-    <div class="pad" id="pad"></div>
-    <button class="btn2" id="pinBack">もどる</button>
-  </div>
-</div>
+<div id="sensBox"><span>マイク感度 <b id="sensN"></b></span><button class="btn2" id="sensDn" title="反応ひかえめに（↓キー）">−</button><button class="btn2" id="sensUp" title="よく反応するように（↑キー）">＋</button><small>↑↓キーでも かえられます</small></div>
 
 <script>
 'use strict';
@@ -245,6 +197,7 @@ function today(){const d=new Date();return `${d.getFullYear()}-${pad(d.getMonth(
 function hhmm(){const d=new Date();return `${pad(d.getHours())}:${pad(d.getMinutes())}`}
 const easeOutBack=x=>{const c1=1.70158,c3=c1+1;return 1+c3*Math.pow(x-1,3)+c1*Math.pow(x-1,2)};
 
+// むずかしさは いまは「ふつう」だけ。ほかは むかしの記録を表示するために残している
 const DIFF={easy:{name:'かんたん',cost:8},normal:{name:'ふつう',cost:12},hard:{name:'むずかしい',cost:18}};
 const CLASSES=['1組','2組','3組','4組','5組'];
 const BALL_COLORS=['#ff4f81','#ffb13d','#ffe14d','#5dff8a','#3ff6ff','#5c8bff','#b45cff','#ff4fd8','#ff7a3c'];
@@ -314,7 +267,8 @@ const Z={low:.12,good:.32,loud:.88,max:1.15};
 
 const GAS_URL='https://script.google.com/macros/s/AKfycbySK-TInyiSCOiwod8oEMp9ZAdt4-TJeK2c-gtfyyGfaXg7sfgxyJqoukWLPiZS4grIww/exec';
 // 設定と記録はすべてスプレッドシート（Apps Script）に置く。端末には何も保存しない
-const cfg={diff:'normal',range:30,demo:false};
+// むずかしさは「ふつう」に固定。マイク感度（range）はプレイ中に ↑↓ キーで変えられる
+const cfg={diff:'normal',range:30};
 let settingsLoaded=false;
 // Apps Script は応答に数十秒かかることがあるので、読み込みを待たずに動けるようにしておく
 let settingsLoading=null;
@@ -322,7 +276,7 @@ function loadSettings(){
   if(settingsLoaded)return Promise.resolve(true);
   return settingsLoading||(settingsLoading=(async()=>{
     try{const j=await (await fetch(GAS_URL+'?action=settings',{cache:'no-store'})).json();
-      if(j&&j.range){if(!setDirty){cfg.diff=j.diff;cfg.range=j.range}settingsLoaded=true}}
+      if(j&&j.range){if(!rangeTouched){cfg.range=j.range;renderSens()}settingsLoaded=true}}
     catch(e){console.warn(e)}
     settingsLoading=null;return settingsLoaded;
   })());
@@ -330,9 +284,9 @@ function loadSettings(){
 
 // ================= audio =================
 const A={ctx:null,an:null,tbuf:null,fbuf:null,ready:false,db:-100,raw:0,lvl:0,floor:-60,freq:null};
-let demoHold=0; // 0:なし 1:歌う 2:大きすぎ
+// スペースキー（またはマウス）を押している間は、マイクの代わりに「歌っている」ことにする（動作の確認用）
+let demoHold=0; // 0:なし 1:歌う 2:大きすぎ（Shift＋スペース）
 async function initMic(){
-  if(cfg.demo){A.floor=-62;return true}
   if(A.ready){if(A.ctx.state==='suspended')await A.ctx.resume();return true}
   try{
     const st=await navigator.mediaDevices.getUserMedia({audio:{echoCancellation:false,noiseSuppression:false,autoGainControl:false}});
@@ -346,20 +300,19 @@ async function initMic(){
 }
 const demoFreq=new Uint8Array(1024);
 function sampleAudio(dt,t){
-  if(!cfg.demo&&A.ready){
+  if(A.ready){
     A.an.getFloatTimeDomainData(A.tbuf);
     let s=0;for(let i=0;i<A.tbuf.length;i++)s+=A.tbuf[i]*A.tbuf[i];
     A.db=10*Math.log10(s/A.tbuf.length+1e-12);
     A.an.getByteFrequencyData(A.fbuf);A.freq=A.fbuf;
-  }else if(cfg.demo){
-    A.db=demoHold===2?-10+rand(-1,1):demoHold===1?-38+Math.sin(t*3)*4+rand(-2,2):-63+rand(-1.5,1.5);
-    for(let i=0;i<demoFreq.length;i++){
-      const v=demoHold?230*Math.exp(-i/110)*(.55+.45*Math.sin(i*.35+t*9))*(demoHold===2?1.15:.85):rand(0,18);
-      demoFreq[i]=clamp(v,0,255);
-    }
+    A.raw=(A.db-(A.floor+6))/cfg.range;
+  }else{A.db=-100;A.raw=-1;A.freq=null}
+  if(demoHold){
+    // マイクの音は使わず「ちょうどいい」（Shift なら「大きすぎ」）の声の大きさにする
+    A.raw=demoHold===2?1.05+rand(-.03,.03):.6+Math.sin(t*3)*.08+rand(-.04,.04);
+    for(let i=0;i<demoFreq.length;i++)demoFreq[i]=clamp(230*Math.exp(-i/110)*(.55+.45*Math.sin(i*.35+t*9))*(demoHold===2?1.15:.85),0,255);
     A.freq=demoFreq;
-  }else{A.db=-100}
-  A.raw=(A.db-(A.floor+6))/cfg.range;
+  }
   const tgt=clamp(A.raw,0,Z.max);
   A.lvl+=(tgt-A.lvl)*(1-Math.exp(-dt*(tgt>A.lvl?12:5)));
 }
@@ -384,9 +337,9 @@ addEventListener('resize',resize);resize();
 const orb=()=>{const R=Math.min(W*.15,H*.14);return{cx:W/2,cy:H*.47,R}};
 
 // ================= state =================
-let mode='title'; // title|count|play|result|records|settings
+let mode='title'; // title|count|play|result|records|ranking
 const P={};
-function resetP(){Object.assign(P,{stageN:0,elapsed:0,points:0,gauge:0,gShow:0,balls:0,comboT:0,silT:0,maxCombo:0,singT:0,feverT:0,loudT:0,multStep:0,comboMile:0,shownScore:0,countPop:0,orbPulse:0,emitAcc:0,evT:rand(14,22),diff:cfg.diff})}
+function resetP(){Object.assign(P,{stageN:0,elapsed:0,points:0,gauge:0,gShow:0,balls:0,comboT:0,silT:0,maxCombo:0,singT:0,feverT:0,loudT:0,multStep:0,comboMile:0,shownScore:0,countPop:0,orbPulse:0,emitAcc:0,evT:rand(14,22),diff:'normal'})}
 resetP();
 let parts=[],rings=[],texts=[],flyers=[],tray=[];
 let shake=0,flash=0,flashColor='255,255,255',hueBase=260,hueRun=260,rayRot=0,fwT=0,fwRate=0;
@@ -822,7 +775,7 @@ function updateCount(dt){
   if(cd.t<1.6){cd.samples.push(A.db);return}
   if(!cd.floorSet){
     cd.floorSet=true;
-    if(!cfg.demo&&cd.samples.length){const s=cd.samples.slice().sort((a,b)=>a-b);A.floor=clamp(s[Math.floor(s.length*.3)],-85,-15)}
+    if(A.ready&&cd.samples.length){const s=cd.samples.slice().sort((a,b)=>a-b);A.floor=clamp(s[Math.floor(s.length*.3)],-85,-15)}
   }
   const k=Math.floor((cd.t-1.6)/.8);
   if(k!==cd.step){
@@ -1102,6 +1055,12 @@ function drawHUD(t){
     g.shadowBlur=0;g.fillStyle='rgba(255,255,255,.2)';g.fillRect(fx-bw/2,y+66*U,bw,10*U);g.fillStyle='#fff';g.fillRect(fx-bw/2,y+66*U,bw*P.feverT/8,10*U);
     g.restore();
   }
+  // マイクが使えないときの お知らせ
+  if(!A.ready){
+    g.save();g.textAlign='center';g.textBaseline='middle';g.font=`900 ${Math.round(24*U)}px 'M PLUS Rounded 1c',sans-serif`;
+    g.fillStyle='#ffb3c1';g.fillText('マイクが つかえません（ブラウザの マイクの きょかを 確認）　スペースキーで うごかせます',W/2,H-130*U,W*.9);
+    g.restore();
+  }
   // 大きすぎ警告のふち
   if(P.loudT>.4&&mode==='play'){
     const a=.35+.25*Math.sin(t*18);
@@ -1151,7 +1110,6 @@ function frame(now){
   sampleAudio(dt,t);
   if(mode==='count')updateCount(dt);
   if(mode==='play')updatePlay(dt,t);
-  if(mode==='settings')updateMeterUI();
   updateFx(dt,t);updateBigFx(dt,t);
   drawBG(t);if(mode==='title')drawTitleFx(t);
   if(curStage().id==='space')drawStars(dt);else drawAmb();
@@ -1161,7 +1119,7 @@ function frame(now){
   if(inGame)drawOrb(t);
   if(inGame)drawMeteorsBombs(t);
   drawParts(t);drawRings();
-  if(inGame||mode==='settings')drawEQ();
+  if(inGame)drawEQ();
   if(inGame){drawMeter(t);drawHUD(t);drawFlyers(t);drawQuiet(t)}
   drawTexts();
   if(inGame){drawPremon(t);drawCutins(t)}
@@ -1173,13 +1131,13 @@ function frame(now){
 requestAnimationFrame(frame);
 
 // ================= screens =================
-const SCREENS=['title','result','records','settings','ranking','pin'];
+const SCREENS=['title','result','records','ranking'];
 let curCls=null; // タイトルで選んだクラス（起動するたびに選び直す）
 function show(id){
   SCREENS.forEach(s=>$('#'+s).classList.toggle('on',s===id));
   if(id)mode=id;
   $('#stopBtn').classList.toggle('on',!id);
-  $('#setBtn').classList.toggle('on',id==='title');
+  $('#sensBox').classList.toggle('on',!id);
 }
 function refreshTitle(){
   $('#clsBtns').innerHTML=CLASSES.map(c=>`<button class="clsBtn${c===curCls?' on':''}" data-c="${c}">${c}</button>`).join('');
@@ -1193,14 +1151,15 @@ async function startGame(){
   $('#tHint').textContent='';
   loadSettings();
   if(!recCache[curCls])fetchRecords(curCls);
-  const ok=await initMic();
-  if(!ok){$('#tHint').textContent='マイクが使えませんでした。ブラウザのマイクの許可を確認してください（「せってい」のデモモードでも試せます）';return}
+  // マイクが使えなくても、スペースキーで動かせるので そのまま始める（画面に お知らせを出す）
+  await initMic();
   loadStageAssets();
   resetP();parts=[];rings=[];texts=[];flyers=[];tray=[];clearBigFx();enterStage();
-  show(null);mode='count';
-  cd={t:cfg.demo?1.6:0,samples:[],step:-1,floorSet:false};
+  renderSens();show(null);mode='count';
+  cd={t:A.ready?0:1.6,samples:[],step:-1,floorSet:false};
 }
 function finish(){
+  if(sensSaveT)saveSens(); // 感度を変えた直後に おわったときも 保存する
   if(mode==='count'){backTitle();return}
   if(mode!=='play')return;
   if(P.elapsed<5){backTitle();return}
@@ -1281,45 +1240,6 @@ async function renderRecords(){
     list.slice(0,200).map(r=>`<tr><td>${esc(r.date)}</td><td>${esc(r.time)}</td><td>${r.balls}</td><td>${r.score.toLocaleString()}</td><td>${r.maxCombo}</td><td>${r.singRatio}%</td><td>${DIFF[r.diff]?DIFF[r.diff].name:esc(r.diff)}</td></tr>`).join('');
 }
 
-// ---- PIN（せっていは先生だけ）
-// PIN そのものは置かず、SHA-256 のハッシュだけを置く
-const PIN_HASH='d03b193db263c7f82d1e82b2b73824c8fa76994d6f81e023baf22734525bf4fc';
-let pinIn='',adminPin='';
-// file:// や http でも動くよう、SHA-256 を自前で計算する
-function sha256(t){
-  const m=[...new TextEncoder().encode('utapower:'+t)],l=m.length*8;
-  m.push(0x80);while(m.length%64!==56)m.push(0);
-  for(let i=7;i>=0;i--)m.push(i>3?0:(l>>>(i*8))&255);
-  const K=[],Hs=[];let n=2;
-  const fr=x=>(x-Math.floor(x))*4294967296|0;
-  while(K.length<64){let p=true;for(let d=2;d*d<=n;d++)if(n%d===0){p=false;break}if(p){if(Hs.length<8)Hs.push(fr(Math.sqrt(n)));K.push(fr(Math.cbrt(n)))}n++}
-  const r=(x,k)=>x>>>k|x<<(32-k),w=new Array(64);
-  for(let o=0;o<m.length;o+=64){
-    for(let i=0;i<16;i++)w[i]=m[o+i*4]<<24|m[o+i*4+1]<<16|m[o+i*4+2]<<8|m[o+i*4+3];
-    for(let i=16;i<64;i++){const a=w[i-15],b=w[i-2];w[i]=(w[i-16]+(r(a,7)^r(a,18)^a>>>3)+w[i-7]+(r(b,17)^r(b,19)^b>>>10))|0}
-    let [a,b,c,d,e,f,g,h]=Hs;
-    for(let i=0;i<64;i++){
-      const t1=(h+(r(e,6)^r(e,11)^r(e,25))+(e&f^~e&g)+K[i]+w[i])|0,t2=((r(a,2)^r(a,13)^r(a,22))+(a&b^a&c^b&c))|0;
-      h=g;g=f;f=e;e=(d+t1)|0;d=c;c=b;b=a;a=(t1+t2)|0;
-    }
-    [a,b,c,d,e,f,g,h].forEach((v,i)=>Hs[i]=(Hs[i]+v)|0);
-  }
-  return Hs.map(v=>(v>>>0).toString(16).padStart(8,'0')).join('');
-}
-function openPin(){pinIn='';drawPin();show('pin')}
-function drawPin(){document.querySelectorAll('#pinDots i').forEach((e,i)=>e.classList.toggle('f',i<pinIn.length))}
-async function pinKey(k){
-  if(k==='C')pinIn='';else if(k==='B')pinIn=pinIn.slice(0,-1);else if(pinIn.length<4)pinIn+=k;
-  drawPin();
-  if(pinIn.length===4){
-    const entered=pinIn,ok=(await sha256(entered))===PIN_HASH;pinIn='';
-    if(ok){adminPin=entered;await openSettings()}
-    else{const c=$('#pinCard');c.classList.remove('shake');void c.offsetWidth;c.classList.add('shake');setTimeout(drawPin,300)}
-  }
-}
-$('#pad').innerHTML=['1','2','3','4','5','6','7','8','9','C','0','B'].map(k=>`<button data-k="${k}">${k==='C'?'✕':k==='B'?'←':k}</button>`).join('');
-$('#pad').onclick=e=>{const k=e.target.dataset&&e.target.dataset.k;if(k)pinKey(k)};
-
 // ---- スプレッドシートへの保存（送れなかった分はページを開いている間だけ持っておき、次の機会に送る）
 let pending=[],sending=false;
 async function sendPending(){
@@ -1362,38 +1282,23 @@ function renderRanking(){
   $('#rankNote').textContent=(rankKey==='today'?'きょう いちばん 玉を あつめた回で くらべます':`こんしゅう（${rankData.weekStart.slice(5).replace('-','/')}〜）の 毎日のベストの ごうけいです`)+`　／ 更新 ${rankData.updated}`;
 }
 
-// ---- settings（保存先はスプレッドシート。PIN はサーバー側でも確認する）
-let micTesting=false,setDirty=false;
-async function openSettings(){
-  setDirty=false;renderSettings();show('settings');
-  if(settingsLoaded){$('#saveMsg').textContent='';return}
-  $('#saveMsg').textContent='スプレッドシートから せっていを よみこみ中…';
-  const ok=await loadSettings();
-  if(mode!=='settings')return;
-  if(ok&&!setDirty)renderSettings();
-  $('#saveMsg').textContent=setDirty?'（まだ ほぞんしていません）':ok?'':'せっていを よみこめませんでした（変更して ほぞんすることは できます）';
+// ---- マイク感度（プレイ中に ↑↓ キーか ＋− ボタンで変える。全クラス共通でスプレッドシートに保存）
+// range が小さいほど よく反応する。画面には 1〜20 の「感度」で出す
+let rangeTouched=false,sensSaveT=null,sensHotT=null;
+const sensLevel=()=>Math.round((50-cfg.range)/2)+1;
+function renderSens(){$('#sensN').textContent=sensLevel()}
+function changeSens(d){
+  cfg.range=clamp(cfg.range-d*2,12,50);rangeTouched=true;renderSens();
+  const b=$('#sensBox');b.classList.add('hot');clearTimeout(sensHotT);sensHotT=setTimeout(()=>b.classList.remove('hot'),1500);
+  clearTimeout(sensSaveT);sensSaveT=setTimeout(saveSens,1500); // 続けて押している間は送らない
 }
-function renderSettings(){
-  $('#sDiff').innerHTML=Object.entries(DIFF).map(([k,v])=>`<option value="${k}">${v.name}</option>`).join('');$('#sDiff').value=cfg.diff;
-  $('#sRange').value=cfg.range;$('#sDemo').checked=cfg.demo;
-  const m=$('#meterH');m.querySelectorAll('.z').forEach(e=>e.remove());
-  [[0,Z.low,'#666'],[Z.low,Z.good,'#ffe14d'],[Z.good,Z.loud,'#5dff8a'],[Z.loud,Z.max,'#ff4d6d']].forEach(([a,b,c])=>{const z=document.createElement('div');z.className='z';z.style.cssText=`left:${a/Z.max*100}%;width:${(b-a)/Z.max*100}%;background:${c}`;m.prepend(z)});
-}
-async function saveSettings(pin){
-  $('#saveMsg').textContent='ほぞん中…（少し 時間が かかることが あります）';
+async function saveSens(){
+  clearTimeout(sensSaveT);sensSaveT=null;
   try{
     const j=await (await fetch(GAS_URL,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},
-      body:JSON.stringify({action:'saveSettings',pin:pin||adminPin,settings:{diff:cfg.diff,range:cfg.range}})})).json();
-    if(!j.ok){$('#saveMsg').textContent=j.error==='pin'?'PINが ちがうため ほぞんできませんでした':'ほぞんできませんでした';return false}
-    cfg.diff=j.settings.diff;cfg.range=j.settings.range;setDirty=false;settingsLoaded=true;$('#saveMsg').textContent='ほぞんしました';return true;
-  }catch(e){console.warn(e);$('#saveMsg').textContent='ほぞんできませんでした（ネットワークを 確認してください）';return false}
-}
-function updateMeterUI(){
-  if(!micTesting&&!cfg.demo){$('#mBar').style.width='0';return}
-  $('#mBar').style.width=clamp(A.lvl/Z.max,0,1)*100+'%';
-  if(cd&&cd.settingsT!=null){cd.settingsT+=1/60;if(cd.settingsT<1.5){cd.samples.push(A.db);$('#mLabel').textContent='しずかに… まわりの音を はかっています';return}
-    if(!cd.done){cd.done=true;const s=cd.samples.slice().sort((a,b)=>a-b);if(s.length&&!cfg.demo)A.floor=clamp(s[Math.floor(s.length*.3)],-85,-15)}}
-  const[lab,col]=zoneLabel(A.lvl);$('#mLabel').textContent=lab;$('#mLabel').style.color=col;
+      body:JSON.stringify({action:'saveSettings',settings:{range:cfg.range}})})).json();
+    if(!j.ok)throw new Error(j.error||'save failed');
+  }catch(e){console.warn(e)}
 }
 
 // ================= events =================
@@ -1412,25 +1317,14 @@ $('#rankReload').onclick=openRanking;
 $('#rankBack').onclick=backTitle;
 document.querySelectorAll('.tab').forEach(b=>b.onclick=()=>{rankKey=b.dataset.k;renderRanking()});
 $('#recBack').onclick=backTitle;
-$('#setBtn').onclick=openPin;
-$('#pinBack').onclick=backTitle;
-$('#setBack').onclick=()=>{
-  if(setDirty){const pin=adminPin;saveSettings(pin).then(ok=>{if(mode==='title')$('#tHint').textContent=ok?'せっていを ほぞんしました':'せっていを ほぞんできませんでした。もう一度 せっていから ほぞんしてください'})}
-  micTesting=false;adminPin='';backTitle();
-};
-$('#saveSet').onclick=()=>saveSettings();
-$('#sDiff').onchange=e=>{cfg.diff=e.target.value;setDirty=true;$('#saveMsg').textContent='（まだ ほぞんしていません）'};
-$('#sRange').oninput=e=>{cfg.range=+e.target.value;setDirty=true;$('#saveMsg').textContent='（まだ ほぞんしていません）'};
-$('#sDemo').onchange=e=>{cfg.demo=e.target.checked;if(cfg.demo)A.floor=-62};
-$('#micTest').onclick=async()=>{const ok=await initMic();if(!ok){$('#mLabel').textContent='マイクが使えませんでした';return}micTesting=true;cd={settingsT:0,samples:[],done:false}};
+$('#sensUp').onclick=e=>{changeSens(1);e.currentTarget.blur()}; // フォーカスが残るとスペースキーで押されてしまう
+$('#sensDn').onclick=e=>{changeSens(-1);e.currentTarget.blur()};
 addEventListener('keydown',e=>{
   if(mode==='play'||mode==='count'){
     if(e.code==='Space'){e.preventDefault();demoHold=e.shiftKey?2:1}
     if(e.code==='Escape'||e.code==='Enter'){e.preventDefault();finish()}
+    if(e.code==='ArrowUp'||e.code==='ArrowDown'){e.preventDefault();changeSens(e.code==='ArrowUp'?1:-1)}
   }else if(mode==='title'&&e.code==='Enter'){e.preventDefault();startGame()}
-  else if(mode==='pin'&&/^(Digit|Numpad)[0-9]$/.test(e.code)){pinKey(e.code.slice(-1))}
-  else if(mode==='pin'&&e.code==='Backspace'){pinKey('B')}
-  else if(mode==='pin'&&e.code==='Escape'){backTitle()}
 });
 addEventListener('keyup',e=>{if(e.code==='Space')demoHold=0});
 cv.addEventListener('pointerdown',()=>{if(mode==='play')demoHold=1});
