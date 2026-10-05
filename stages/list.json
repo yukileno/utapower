@@ -1,7 +1,16 @@
 {
  "flower": [
+  "ball1.png",
+  "ball2.png",
+  "ball3.png",
   "bg.jpg",
-  "card.jpg"
+  "card.jpg",
+  "cutin/1.jpg",
+  "cutin/2.jpg",
+  "cutin/3.jpg",
+  "cutin/4.jpg",
+  "gold.png",
+  "orb.png"
  ],
  "sea": [
   "ball1.png",
@@ -14,6 +23,13 @@
   "cutin/3.jpg",
   "cutin/4.jpg",
   "gold.png",
+  "orb.png"
+ ],
+ "sky": [],
+ "sweets": [
+  "ball1.png",
+  "bg.jpg",
+  "card.jpg",
   "orb.png"
  ]
 }
