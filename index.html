@@ -162,8 +162,7 @@ th{color:var(--sub);position:sticky;top:0;background:#1d1046}
 
 <!-- ランキング -->
 <div id="ranking" class="screen">
-  <div class="h2">クラス ランキング</div>
-  <div class="row"><button class="tab on" data-k="today">きょう</button><button class="tab" data-k="week">こんしゅう</button></div>
+  <div class="h2">こんしゅうの クラス ランキング</div>
   <div class="card wide" id="rankBox"></div>
   <div class="cap" id="rankNote"></div>
   <div class="row"><button class="btn2" id="rankReload">さいしんにする</button><button class="btn2" id="rankBack">もどる</button></div>
@@ -1255,7 +1254,7 @@ async function sendPending(){
   finally{sending=false}
 }
 addEventListener('beforeunload',e=>{if(pending.length){e.preventDefault();e.returnValue=''}});
-let rankData=null,rankKey='today';
+let rankData=null;
 async function openRanking(){
   show('ranking');fwRate=.5;fwT=0;
   $('#rankBox').innerHTML='<div class="cap">よみこみ中…</div>';$('#rankNote').textContent='';
@@ -1266,20 +1265,18 @@ async function openRanking(){
   }catch(e){console.warn(e);$('#rankBox').innerHTML='<div class="cap">ランキングを よみこめませんでした。URLと ネットワークを 確認してください。</div>'}
 }
 function renderRanking(){
-  document.querySelectorAll('.tab').forEach(b=>b.classList.toggle('on',b.dataset.k===rankKey));
   if(!rankData)return;
-  const list=rankData[rankKey]||[];
+  const list=rankData.week||[];
   const mx=Math.max(1,...list.map(r=>r.balls));
   let rank=0,prevKey=null;
   $('#rankBox').innerHTML=list.map((r,i)=>{
     const key=r.balls+'/'+r.score;if(key!==prevKey){rank=i+1;prevKey=key}
     const none=!r.balls&&!r.score;
     const mc=none?'mx':rank<=3?'m'+rank:'mx';
-    const sub=rankKey==='today'?`${r.score.toLocaleString()}点`:`${r.days}日 うたった`;
-    return `<div class="rk${r.cls===curCls?' me':''}" style="animation-delay:${i*120}ms"><div class="medal ${mc}">${none?'−':rank}</div><div class="c">${esc(r.cls)}</div><div class="track"><div class="fill" style="width:${r.balls/mx*100}%;animation-delay:${300+i*120}ms"></div></div><div class="n">${r.balls}こ<small>${none?'まだ':sub}</small></div></div>`;
+    return `<div class="rk${r.cls===curCls?' me':''}" style="animation-delay:${i*120}ms"><div class="medal ${mc}">${none?'−':rank}</div><div class="c">${esc(r.cls)}</div><div class="track"><div class="fill" style="width:${r.balls/mx*100}%;animation-delay:${300+i*120}ms"></div></div><div class="n">${r.balls}こ<small>${none?'まだ':r.days+'日 うたった'}</small></div></div>`;
   }).join('');
   if(list.length&&list[0].balls>0){burst(W*.5,H*.2,120,GOLD,true)}
-  $('#rankNote').textContent=(rankKey==='today'?'きょう いちばん 玉を あつめた回で くらべます':`こんしゅう（${rankData.weekStart.slice(5).replace('-','/')}〜）の 毎日のベストの ごうけいです`)+`　／ 更新 ${rankData.updated}`;
+  $('#rankNote').textContent=`こんしゅう（${rankData.weekStart.slice(5).replace('-','/')}〜）の 毎日のベストの ごうけいです　／ 更新 ${rankData.updated}`;
 }
 
 // ---- マイク感度（プレイ中に ↑↓ キーか ＋− ボタンで変える。全クラス共通でスプレッドシートに保存）
@@ -1315,7 +1312,6 @@ $('#rankBtn').onclick=openRanking;
 $('#rRank').onclick=openRanking;
 $('#rankReload').onclick=openRanking;
 $('#rankBack').onclick=backTitle;
-document.querySelectorAll('.tab').forEach(b=>b.onclick=()=>{rankKey=b.dataset.k;renderRanking()});
 $('#recBack').onclick=backTitle;
 $('#sensUp').onclick=e=>{changeSens(1);e.currentTarget.blur()}; // フォーカスが残るとスペースキーで押されてしまう
 $('#sensDn').onclick=e=>{changeSens(-1);e.currentTarget.blur()};
