@@ -1091,14 +1091,36 @@ function drawHUD(t){
     g.fillStyle=i<got?ballColor(P.balls-got+i):'rgba(255,255,255,.18)';g.fill();
     if(i===9){g.lineWidth=2*U;g.strokeStyle=GOLD;g.stroke()}
   }
-  g.font=`900 ${Math.round(18*U)}px 'M PLUS Rounded 1c',sans-serif`;g.fillStyle='rgba(255,255,255,.8)';
-  g.fillText(P.stageN+1<STAGES.length?`つぎの せかいまで あと ${Math.max(0,STAGE_SCORE[P.stageN+1]-P.shownScore).toLocaleString()}てん`:'ラスト ステージ！',W-30*U,232*U);
   g.restore();
-  // 玉カウント（右）
-  const bx=W-150*U,by=cy,br=58*U*(1+P.countPop*.35);
-  drawBall(bx-br-30*U,by,br,P.balls?ballColor(P.balls-1):'#888',false,t,P.balls?ballImg(P.balls-1):null);
-  g.save();g.textAlign='left';g.textBaseline='middle';g.font=`${Math.round(90*U*(1+P.countPop*.3))}px 'Dela Gothic One',sans-serif`;
-  g.lineWidth=10*U;g.strokeStyle='rgba(40,0,70,.8)';g.lineJoin='round';g.strokeText('×'+P.balls,bx-20*U,by);g.fillStyle='#fff';g.fillText('×'+P.balls,bx-20*U,by);g.restore();
+  // つぎの せかいまで（上の まんなか）。とくてんが たまっていくのが 見えるよう ゲージも出す
+  {
+    const last=P.stageN+1>=STAGES.length,lo=STAGE_SCORE[Math.min(P.stageN,STAGE_SCORE.length-1)],hi=last?lo:STAGE_SCORE[P.stageN+1];
+    const prog=last?1:clamp((P.shownScore-lo)/(hi-lo),0,1),rest=Math.max(0,hi-P.shownScore);
+    const soon=!last&&rest<=3000,pul=soon?1+.06*Math.sin(t*9):1;
+    const msg=last?'ラスト ステージ！':`${soon?'もうすぐ！ ':''}つぎの せかいまで あと ${rest.toLocaleString()} てん`;
+    g.save();g.textAlign='center';g.textBaseline='middle';
+    let fs=48*U*pul;g.font=`${Math.round(fs)}px 'Dela Gothic One',sans-serif`;
+    const maxW=W*.52,tw0=g.measureText(msg).width;if(tw0>maxW){fs*=maxW/tw0;g.font=`${Math.round(fs)}px 'Dela Gothic One',sans-serif`}
+    const ty=38*U;g.lineJoin='round';g.lineWidth=Math.max(4,fs*.2);g.strokeStyle='rgba(30,0,60,.9)';g.strokeText(msg,cx,ty);
+    g.shadowColor=last?GOLD:'#ff9a3c';g.shadowBlur=18;g.fillStyle=last?GOLD:soon?'#ffe14d':'#fff';g.fillText(msg,cx,ty);g.shadowBlur=0;
+    const bw=Math.min(W*.46,620*U),bh=20*U,bxx=cx-bw/2,byy=ty+fs*.62+4*U;
+    g.fillStyle='rgba(0,0,0,.45)';g.beginPath();g.roundRect(bxx-3*U,byy-3*U,bw+6*U,bh+6*U,(bh+6*U)/2);g.fill();
+    g.fillStyle='rgba(255,255,255,.16)';g.beginPath();g.roundRect(bxx,byy,bw,bh,bh/2);g.fill();
+    if(prog>0){
+      const lg=g.createLinearGradient(bxx,0,bxx+bw,0);lg.addColorStop(0,'#3ff6ff');lg.addColorStop(.55,'#ffe14d');lg.addColorStop(1,'#ff4fd8');
+      g.shadowColor='#ffe14d';g.shadowBlur=14;g.fillStyle=lg;g.beginPath();g.roundRect(bxx,byy,Math.max(bh,bw*prog),bh,bh/2);g.fill();g.shadowBlur=0;
+    }
+    g.lineWidth=2*U;g.strokeStyle='rgba(255,255,255,.8)';g.beginPath();g.roundRect(bxx,byy,bw,bh,bh/2);g.stroke();
+    g.restore();
+  }
+  // 玉カウント（右）。けた数がふえても 右はしで きれないよう、はばを測って 左へずらす
+  const by=cy,br=58*U*(1+P.countPop*.35);
+  const cfs=Math.round(90*U*(1+P.countPop*.3)),ctxt='×'+P.balls;
+  g.save();g.font=`${cfs}px 'Dela Gothic One',sans-serif`;const ctw=g.measureText(ctxt).width;g.restore();
+  const tx=Math.min(W-170*U,W-26*U-ctw);
+  drawBall(tx-br-10*U,by,br,P.balls?ballColor(P.balls-1):'#888',false,t,P.balls?ballImg(P.balls-1):null);
+  g.save();g.textAlign='left';g.textBaseline='middle';g.font=`${cfs}px 'Dela Gothic One',sans-serif`;
+  g.lineWidth=10*U;g.strokeStyle='rgba(40,0,70,.8)';g.lineJoin='round';g.strokeText(ctxt,tx,by);g.fillStyle='#fff';g.fillText(ctxt,tx,by);g.restore();
   // 状態（上）
   const rr=R*1.32+R*.2;
   const [lab,col]=zoneLabel(A.lvl);
