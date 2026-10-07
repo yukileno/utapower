@@ -19,10 +19,12 @@
 
 # 「ライブ」モード（高学年むけ）画像生成タスク　→ `stages/PROMPTS_LIVE.md`
 
-- [ ] さいしょに `stages/street/cutin/1.jpg`（ソラ）を作り、絵柄の見本にする
-- [ ] ステージ1: よるの ストリート (`stages/street/`) 0/11
-- [ ] ステージ2: ちかの ライブハウス (`stages/livehouse/`) 0/11
-- [ ] ステージ3: ゆうやけ アリーナ (`stages/arena/`) 0/11
-- [ ] ステージ4: きょだい ドーム (`stages/dome/`) 0/11
-- [ ] ステージ5: うちゅう フェス (`stages/galaxy/`) 0/11
-- [ ] `python process_stages.py` で縮小・圧縮と list.json の更新
+- [x] さいしょに `stages/street/cutin/1.jpg`（ソラ）を作り、絵柄の見本にした
+- [x] ステージ1: よるの ストリート (`stages/street/`) 11/11
+- [x] ステージ2: ちかの ライブハウス (`stages/livehouse/`) 11/11
+- [x] ステージ3: ゆうやけ アリーナ (`stages/arena/`) 11/11
+- [x] ステージ4: きょだい ドーム (`stages/dome/`) 11/11
+- [x] ステージ5: うちゅう フェス (`stages/galaxy/`) 11/11
+- [x] `stages/list.json` の更新（`imagefx.py` の `update_list_json()` でも作り直せる）
+
+ステージは得点で進む（`index.html` の `STAGE_SCORE`）。ループはせず、最後のステージが続く。

@@ -1,5 +1,57 @@
 {
+ "arena": [
+  "ball1.png",
+  "ball2.png",
+  "ball3.png",
+  "bg.jpg",
+  "card.jpg",
+  "cutin/1.jpg",
+  "cutin/2.jpg",
+  "cutin/3.jpg",
+  "cutin/4.jpg",
+  "gold.png",
+  "orb.png"
+ ],
+ "dome": [
+  "ball1.png",
+  "ball2.png",
+  "ball3.png",
+  "bg.jpg",
+  "card.jpg",
+  "cutin/1.jpg",
+  "cutin/2.jpg",
+  "cutin/3.jpg",
+  "cutin/4.jpg",
+  "gold.png",
+  "orb.png"
+ ],
  "flower": [
+  "ball1.png",
+  "ball2.png",
+  "ball3.png",
+  "bg.jpg",
+  "card.jpg",
+  "cutin/1.jpg",
+  "cutin/2.jpg",
+  "cutin/3.jpg",
+  "cutin/4.jpg",
+  "gold.png",
+  "orb.png"
+ ],
+ "galaxy": [
+  "ball1.png",
+  "ball2.png",
+  "ball3.png",
+  "bg.jpg",
+  "card.jpg",
+  "cutin/1.jpg",
+  "cutin/2.jpg",
+  "cutin/3.jpg",
+  "cutin/4.jpg",
+  "gold.png",
+  "orb.png"
+ ],
+ "livehouse": [
   "ball1.png",
   "ball2.png",
   "ball3.png",
@@ -26,6 +78,19 @@
   "orb.png"
  ],
  "sky": [
+  "ball1.png",
+  "ball2.png",
+  "ball3.png",
+  "bg.jpg",
+  "card.jpg",
+  "cutin/1.jpg",
+  "cutin/2.jpg",
+  "cutin/3.jpg",
+  "cutin/4.jpg",
+  "gold.png",
+  "orb.png"
+ ],
+ "street": [
   "ball1.png",
   "ball2.png",
   "ball3.png",

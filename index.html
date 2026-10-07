@@ -268,9 +268,13 @@ const THEMES={
 // えらんだ モード（起動するたびに キラキラから はじまる。端末には ほぞんしない）
 let themeId='kira',STAGES=THEMES.kira.stages;
 function setTheme(id){if(!THEMES[id])return;themeId=id;STAGES=THEMES[id].stages;prepCutImage()}
-const stageAt=n=>STAGES[n%STAGES.length];
+// ステージは とくてんで すすむ（くりかえしは しない。さいごの ステージは ずっと つづく）
+// STAGE_SCORE[n] = n番目(0から)のステージに はいる とくてん。むずかしさを かえたいときは ここだけ なおす
+const STAGE_SCORE=[0,15000,35000,65000,100000];
+const stageIdxOf=sc=>{let k=0;STAGE_SCORE.forEach((v,i)=>{if(sc>=v)k=i});return Math.min(k,STAGES.length-1)};
+const stageAt=n=>STAGES[Math.min(n,STAGES.length-1)];
 const curStage=()=>stageAt(P.stageN||0);
-const ballStage=i=>stageAt(Math.floor(i/10)); // i こめ（0から）の玉が どのステージの玉か
+const ballStage=i=>stageAt(P.ballStages&&P.ballStages[i]!=null?P.ballStages[i]:0); // i こめ（0から）の玉を とったときの ステージ
 
 // ステージの画像は stages/<id>/ に置く（一覧 stages/list.json は GitHub Actions が自動で作る）
 // bg=背景 card=ステージ切り替えの絵 orb=まんなかの球 gold=金の玉 ball*=玉 cutin/*=カットイン。どれも無ければ絵を描いて代わりにする
@@ -378,7 +382,7 @@ const orb=()=>{const R=Math.min(W*.15,H*.14);return{cx:W/2,cy:H*.47,R}};
 // ================= state =================
 let mode='title'; // title|count|play|result|records|ranking
 const P={};
-function resetP(){Object.assign(P,{stageN:0,elapsed:0,points:0,gauge:0,gShow:0,balls:0,comboT:0,maxCombo:0,singT:0,feverT:0,loudT:0,multStep:0,comboMile:0,shownScore:0,countPop:0,orbPulse:0,emitAcc:0,evT:rand(14,22),diff:'normal'})}
+function resetP(){Object.assign(P,{stageN:0,ballStages:[],elapsed:0,points:0,gauge:0,gShow:0,balls:0,comboT:0,maxCombo:0,singT:0,feverT:0,loudT:0,multStep:0,comboMile:0,shownScore:0,countPop:0,orbPulse:0,emitAcc:0,evT:rand(14,22),diff:'normal'})}
 resetP();
 let parts=[],rings=[],texts=[],flyers=[],tray=[];
 let shake=0,flash=0,flashColor='255,255,255',hueBase=260,hueRun=260,rayRot=0,fwT=0,fwRate=0;
@@ -625,10 +629,10 @@ function drawStageCard(st,s,t){
   const sh=g.createLinearGradient(0,H*.45,0,H);sh.addColorStop(0,'rgba(10,0,30,0)');sh.addColorStop(1,'rgba(10,0,30,.75)');
   g.fillStyle=sh;g.fillRect(0,H*.45,W,H*.55);
   // 文字
-  const pop=easeOutBack(clamp((p-.45)/.35,0,1)),lap=Math.floor(s.n/STAGES.length);
+  const pop=easeOutBack(clamp((p-.45)/.35,0,1));
   g.save();g.textAlign='center';g.textBaseline='middle';g.lineJoin='round';
   g.translate(W/2,H*.66);g.scale(pop,pop);
-  const top=`ステージ ${s.n%STAGES.length+1}`+(lap?`（${lap+1}しゅうめ）`:'');
+  const top=s.n>=STAGES.length-1?'ラスト ステージ！':`ステージ ${s.n+1}`;
   g.font=`${Math.round(64*U)}px 'Dela Gothic One',sans-serif`;
   g.lineWidth=12*U;g.strokeStyle='#1a0020';g.strokeText(top,0,-90*U);g.fillStyle='#fff';g.fillText(top,0,-90*U);
   let sz=120*U;g.font=`${Math.round(sz)}px 'Dela Gothic One',sans-serif`;
@@ -748,17 +752,17 @@ function drawStageBack(t,st,inPlay){
 }
 
 function getBall(){
-  P.balls++;const i=P.balls-1;const gold=P.balls%10===0;const col=ballColor(i),img=ballImg(i),st=ballStage(i);
+  P.balls++;const i=P.balls-1;P.ballStages[i]=P.stageN;const gold=P.balls%10===0;const col=ballColor(i),img=ballImg(i),st=ballStage(i);
   const {cx,cy,R}=orb();
   flash=gold?1:.65;flashColor=gold?'255,225,120':'255,255,255';shake=Math.max(shake,gold?30:16);P.orbPulse=1;
   for(let k=0;k<3;k++)ring(cx,cy,R*.8,900+k*380,16-k*4,col,.9);
   burst(cx,cy,gold?300:160,col,true);
   const words=st.get||['GET!!','ゲット!!','ナイス!!','すごい!!','いいね!!','さいこう!!','やったー!!'];
-  if(gold)addText('ステージ クリア!!',cx,cy,110*U,'rainbow',1.4,-30);
+  if(gold)addText('ゴールド ゲット!!',cx,cy,110*U,'rainbow',1.4,-30);
   else addText(words[i%words.length],cx,cy,120*U,col,1.1,-60);
   flyers.push({i,col,gold,img,t:0,dur:.8,x0:cx,y0:cy});
-  // 金の玉（10こめ）で ステージクリア。スーパータイムも はじまる
-  if(gold){P.feverT=8;later(.75,startStageFx)}
+  // 金の玉（10こごと）で スーパータイム。ステージは とくてんで かわる（updatePlay）
+  if(gold){P.feverT=8}
   else if(P.balls%5===0){
     const wasFever=P.feverT>0;P.feverT=8;
     if(!wasFever){cutIn(3,pick(CUT_WORDS[3]));burst(cx,H*.24,120,'#fff',false)}
@@ -817,6 +821,9 @@ function updatePlay(dt,t){
   const inc=gain*mult*dt;
   P.points+=inc;P.gauge+=inc/DIFF[P.diff].cost;
   while(P.gauge>=1){P.gauge-=1;P.gShow=0;getBall()}
+  // とくてんが つぎのステージの ラインを こえたら ステージが かわる
+  const nxs=P.stageN+1;
+  if(!stageFx&&nxs<STAGES.length&&P.points*100>=STAGE_SCORE[nxs]){P.feverT=Math.max(P.feverT,8);startStageFx()}
   if(P.feverT>0)P.feverT=Math.max(0,P.feverT-dt);
   P.loudT=A.lvl>Z.loud?P.loudT+dt:0;
   // 放出パーティクル
@@ -1075,15 +1082,17 @@ function drawHUD(t){
   g.font=`900 ${Math.round(22*U)}px 'M PLUS Rounded 1c',sans-serif`;g.fillStyle='rgba(255,255,255,.75)';g.fillText(curCls,W-30*U,40*U);
   g.font=`${Math.round(58*U)}px 'Dela Gothic One',sans-serif`;g.fillStyle='#ffe14d';g.shadowColor='#ff9a3c';g.shadowBlur=20;g.fillText(P.shownScore.toLocaleString(),W-30*U,104*U);g.shadowBlur=0;
   const sec=Math.floor(P.elapsed);g.font=`900 ${Math.round(26*U)}px 'M PLUS Rounded 1c',sans-serif`;g.fillStyle='#fff';g.fillText(`${Math.floor(sec/60)}:${pad(sec%60)}`,W-30*U,142*U);
-  // いまのステージと、つぎの せかいまでの 玉（10こ。さいごは金の玉）
+  // いまのステージと、つぎの せかいまでの とくてん。下の10この丸は 金の玉まで あと なんこか
   const cs=curStage();g.font=`900 ${Math.round(22*U)}px 'M PLUS Rounded 1c',sans-serif`;g.fillStyle=cs.accent;g.shadowColor=cs.accent;g.shadowBlur=12;
-  g.fillText(`ステージ${P.stageN%STAGES.length+1} ${cs.short}`,W-30*U,178*U);g.shadowBlur=0;
+  g.fillText(`ステージ${P.stageN+1} ${cs.short}`,W-30*U,178*U);g.shadowBlur=0;
   const got=P.balls%10;
   for(let i=0;i<10;i++){
     const x=W-37*U-(9-i)*20*U,y=200*U;g.beginPath();g.arc(x,y,7*U,0,TAU);
     g.fillStyle=i<got?ballColor(P.balls-got+i):'rgba(255,255,255,.18)';g.fill();
     if(i===9){g.lineWidth=2*U;g.strokeStyle=GOLD;g.stroke()}
   }
+  g.font=`900 ${Math.round(18*U)}px 'M PLUS Rounded 1c',sans-serif`;g.fillStyle='rgba(255,255,255,.8)';
+  g.fillText(P.stageN+1<STAGES.length?`つぎの せかいまで あと ${Math.max(0,STAGE_SCORE[P.stageN+1]-P.shownScore).toLocaleString()}てん`:'ラスト ステージ！',W-30*U,232*U);
   g.restore();
   // 玉カウント（右）
   const bx=W-150*U,by=cy,br=58*U*(1+P.countPop*.35);
@@ -1210,8 +1219,9 @@ function refreshTitle(){
   $('#startBtn').disabled=!curCls;
   $('#themeBtns').innerHTML=Object.entries(THEMES).map(([k,th])=>`<button class="themeBtn${k===themeId?' on':''}" data-t="${k}">${th.name}</button>`).join('');
   const L='うたパワー！';$('#logo').innerHTML=[...L].map((c,i)=>`<span style="animation-delay:${i*.12}s">${c}</span>`).join('');
-  $('#stageRow').innerHTML='<span class="cap">玉を 10こ あつめると つぎの せかいへ！</span>'+
-    STAGES.map((s,i)=>`<span class="schip" style="--a:${s.accent}">${i+1}. ${s.short}</span>`).join('<span class="sarrow">▶</span>');
+  // さいしょの2つだけ 名前を 見せる。のこりは がんばって とくてんを とると わかる
+  $('#stageRow').innerHTML='<span class="cap">とくてんが ふえると つぎの せかいへ！</span>'+
+    STAGES.map((s,i)=>`<span class="schip" style="--a:${i<2?s.accent:'#888'}">${i+1}. ${i<2?s.short:'？？？'}</span>`).join('<span class="sarrow">▶</span>');
 }
 async function startGame(){
   if(!curCls){$('#tHint').textContent='さきに クラスを えらんでね';return}
@@ -1251,9 +1261,10 @@ function showResult(rec,prev){
     const im=ballImg(i);if(im)d.style.background=`url("${im.src}") center/110% no-repeat`;
     box.append(d);
   }
-  const k=Math.floor(n/10),ks=stageAt(k),lap=Math.floor(k/STAGES.length);
-  $('#rStage').innerHTML=k?`<span class="up">ステージ${k%STAGES.length+1}「${ks.name}」まで いけた！</span>${lap?`（${lap+1}しゅうめ）`:''} <span class="sub">つぎまで あと${10-n%10}こ</span>`
-    :`<span class="sub">あと ${10-n}こで つぎの せかい「${stageAt(1).name}」へ！</span>`;
+  const k=stageIdxOf(rec.score),ks=stageAt(k);
+  $('#rStage').innerHTML=k>=STAGES.length-1?`<span class="up">ラスト ステージ「${ks.name}」まで いけた！</span>`
+    :k?`<span class="up">ステージ${k+1}「${ks.name}」まで いけた！</span> <span class="sub">つぎまで あと${(STAGE_SCORE[k+1]-rec.score).toLocaleString()}てん</span>`
+    :`<span class="sub">あと ${(STAGE_SCORE[1]-rec.score).toLocaleString()}てんで つぎの せかいへ！</span>`;
   countUp($('#rBallN'),n,Math.max(800,n*step));
   countUp($('#rScore'),rec.score,1600,v=>v.toLocaleString());
   countUp($('#rCombo'),rec.maxCombo,1200);
