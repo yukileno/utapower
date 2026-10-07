@@ -14,3 +14,15 @@
 - [x] 全画像の縮小・圧縮・配置 (球 512x512, 玉 256x256, Web最適化JPEG圧縮)
 - [x] `stages/list.json` の更新 (sea: 11枚, flower: 11枚, sweets: 11枚, sky: 11枚 / 全44枚完了)
 - [x] 全ステージ画像生成タスク 100% 完了！
+
+---
+
+# 「ライブ」モード（高学年むけ）画像生成タスク　→ `stages/PROMPTS_LIVE.md`
+
+- [ ] さいしょに `stages/street/cutin/1.jpg`（ソラ）を作り、絵柄の見本にする
+- [ ] ステージ1: よるの ストリート (`stages/street/`) 0/11
+- [ ] ステージ2: ちかの ライブハウス (`stages/livehouse/`) 0/11
+- [ ] ステージ3: ゆうやけ アリーナ (`stages/arena/`) 0/11
+- [ ] ステージ4: きょだい ドーム (`stages/dome/`) 0/11
+- [ ] ステージ5: うちゅう フェス (`stages/galaxy/`) 0/11
+- [ ] `python process_stages.py` で縮小・圧縮と list.json の更新

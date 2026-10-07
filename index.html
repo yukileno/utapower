@@ -115,6 +115,11 @@ th{color:var(--sub);position:sticky;top:0;background:#1d1046}
 .rk .n{text-align:right;font-family:'Dela Gothic One',sans-serif;font-size:calc(var(--u) * 38);line-height:1}
 @media(max-width:700px){.rk{grid-template-columns:64px 1fr auto}.rk .track{display:none}}
 .rk .n small{display:block;font-family:'M PLUS Rounded 1c',sans-serif;font-weight:800;font-size:max(11px,calc(var(--u) * 15));color:var(--sub)}
+/* みための モード */
+.themeRow{gap:calc(var(--u) * 12)}
+.themeBtn{font-family:'Dela Gothic One',sans-serif;font-size:max(14px,calc(var(--u) * 24));color:#fff;padding:.15em .9em;border-radius:999px;border:2px solid var(--line);background:rgba(255,255,255,.06);cursor:pointer}
+.themeBtn.on{border-color:transparent;background:linear-gradient(90deg,#ff4fd8,#7b5cff);box-shadow:0 0 20px rgba(255,79,216,.6)}
+.themeBtn.on[data-t="live"]{background:linear-gradient(90deg,#ff4f5e,#3ff6ff);box-shadow:0 0 20px rgba(63,246,255,.6)}
 /* stages */
 .stageRow{display:flex;align-items:center;gap:calc(var(--u) * 8);flex-wrap:wrap;justify-content:center;font-weight:900;font-size:max(12px,calc(var(--u) * 18))}
 .schip{padding:calc(var(--u) * 3) calc(var(--u) * 14);border-radius:999px;border:2px solid var(--a);background:rgba(0,0,0,.35);box-shadow:0 0 14px var(--a)}
@@ -133,6 +138,7 @@ th{color:var(--sub);position:sticky;top:0;background:#1d1046}
     <div class="ribbon">みんなの うたごえで パワーをためて、玉を ゲットしよう！</div>
     <div class="stageRow" id="stageRow"></div>
   </div>
+  <div class="row themeRow"><span class="cap">みため</span><span id="themeBtns" class="row"></span></div>
   <div class="card goldCard">
     <div class="cap" style="margin-bottom:calc(var(--u) * 12)">クラスを えらんでね</div>
     <div class="row" id="clsBtns"></div>
@@ -205,8 +211,11 @@ const GOLD='#ffd54a';
 // ================= ステージ =================
 // 玉を10こ（金の玉まで）あつめるごとに つぎの せかいへ。5つめの あとは 1つめに もどる
 // hue:null は いままでどおり色が ぐるぐる変わる。数字なら その色を中心に hueR だけ ゆれる
-const STAGES=[
-  {id:'space',name:'うちゅうの せかい',short:'うちゅう',accent:'#b45cff',hue:null,balls:BALL_COLORS},
+// stars:true のステージは 星が とんでくる背景になる
+// みための モードは タイトルで えらぶ。kira=これまでの かわいい絵、live=高学年むけの ライブツアー
+const THEMES={
+ kira:{name:'キラキラ',cutBase:true,stages:[
+  {id:'space',name:'うちゅうの せかい',short:'うちゅう',accent:'#b45cff',hue:null,stars:true,balls:BALL_COLORS},
   {id:'sea',name:'うみの せかい',short:'うみ',accent:'#3ff6ff',hue:195,hueR:25,span:120,sat:80,light:[22,6],
     balls:['#7ff6ff','#4fc3ff','#d6fbff','#5dffd2','#a8b6ff','#3ff6ff','#9fe8ff'],
     get:['ぷくぷく!!','ゲット!!','ナイス!!','すごい!!','いいね!!'],
@@ -227,7 +236,38 @@ const STAGES=[
     get:['ふわっと!!','ゲット!!','にじいろ!!','ナイス!!','さいこう!!'],
     words:{1:['そらまで とどけ!!','くもの うえへ!!','にじの ハーモニー!!','つばさを ひろげて!!'],
       2:['にじいろ パワー!!','そら いっぱいの うたごえ!!','てんしも うたう!!','せかいの てっぺん!!']}}
-];
+ ]},
+ live:{name:'ライブ',cutBase:false,stages:[
+  {id:'street',name:'よるの ストリート',short:'ストリート',accent:'#ff4fd8',hue:285,hueR:40,span:140,sat:80,light:[18,5],
+    balls:['#ff4fd8','#3ff6ff','#b45cff','#ff79e8','#5cc8ff','#d6a8ff'],
+    get:['ゲット!!','ナイス!!','いいね!!','キマった!!','グッド!!'],
+    words:{1:['まちに ひびけ!!','あしを とめさせろ!!','ストリート デビュー!!','いい ノリ!!'],
+      2:['ひとが あつまってきた!!','まちじゅう ノリノリ!!','ネオンも ひかる!!','ストリート せいは!!']}},
+  {id:'livehouse',name:'ちかの ライブハウス',short:'ライブハウス',accent:'#ff4f5e',hue:350,hueR:20,span:90,sat:85,light:[20,5],
+    balls:['#ff4f5e','#ff8a3c','#ffe14d','#ff4fd8','#ffffff','#ffb3a8'],
+    get:['ゲット!!','ナイス!!','アツい!!','キマった!!','グッド!!'],
+    words:{1:['スポットライト オン!!','フロアが ゆれる!!','アンコール!!','いい こえ!!'],
+      2:['ライブハウス ばくはつ!!','もう まんいん!!','ステージ ジャック!!','ボルテージ MAX!!']}},
+  {id:'arena',name:'ゆうやけ アリーナ',short:'アリーナ',accent:'#ffb13d',hue:20,hueR:30,span:120,sat:85,light:[22,6],
+    balls:['#ffb13d','#ff7a3c','#ffe14d','#ff4f81','#fff0a8','#b45cff'],
+    get:['ゲット!!','ナイス!!','さいこう!!','キマった!!','アツい!!'],
+    words:{1:['はなびを あげろ!!','アリーナ いっぱい!!','みんなで うたえ!!','ゆうひに ひびけ!!'],
+      2:['だいかんせい!!','ペンライトの うみ!!','アリーナ せいは!!','ボルテージ MAX!!']}},
+  {id:'dome',name:'きょだい ドーム',short:'ドーム',accent:'#3ff6ff',hue:220,hueR:35,span:160,sat:85,light:[20,5],
+    balls:['#3ff6ff','#5c8bff','#5dff8a','#b45cff','#ffffff','#7ff6ff'],
+    get:['ゲット!!','ナイス!!','さいこう!!','キマった!!','パーフェクト!!'],
+    words:{1:['レーザー スタート!!','5まんにんの こえ!!','ドームが ゆれる!!','ひかりの うみ!!'],
+      2:['ドーム ツアー!!','でんせつの ライブ!!','ぜんせき スタンディング!!','ボルテージ MAX!!']}},
+  {id:'galaxy',name:'うちゅう フェス',short:'うちゅうフェス',accent:'#ffe14d',hue:null,stars:true,
+    balls:['#ffe14d','#3ff6ff','#ff4fd8','#b45cff','#5dff8a','#ffffff'],
+    get:['ゲット!!','ナイス!!','ギャラクシー!!','さいこう!!','レジェンド!!'],
+    words:{1:['ほしまで とどけ!!','うちゅうに ひびけ!!','ぎんがの ステージ!!','ほしも おどる!!'],
+      2:['うちゅう いちの こえ!!','でんせつの フェス!!','ぎんがを ゆらせ!!','レジェンド パワー!!']}}
+ ]}
+};
+// えらんだ モード（起動するたびに キラキラから はじまる。端末には ほぞんしない）
+let themeId='kira',STAGES=THEMES.kira.stages;
+function setTheme(id){if(!THEMES[id])return;themeId=id;STAGES=THEMES[id].stages;prepCutImage()}
 const stageAt=n=>STAGES[n%STAGES.length];
 const curStage=()=>stageAt(P.stageN||0);
 const ballStage=i=>stageAt(Math.floor(i/10)); // i こめ（0から）の玉が どのステージの玉か
@@ -240,7 +280,7 @@ let stageAssetsLoading=false;
 function loadStageAssets(){
   if(stageAssetsLoading)return;stageAssetsLoading=true;
   fetch('stages/list.json',{cache:'no-store'}).then(r=>r.json()).then(m=>{
-    for(const st of STAGES){
+    for(const st of Object.values(THEMES).flatMap(th=>th.stages)){
       const o=SIMG[st.id]={bg:null,card:null,orb:null,gold:null,balls:[],cut:[]};
       for(const f of (m&&m[st.id])||[]){
         const src='stages/'+st.id+'/'+f.split('/').map(encodeURIComponent).join('/');
@@ -376,7 +416,7 @@ const pick=a=>a[Math.floor(Math.random()*a.length)];
 let cutBase=[],cutNext=null,cutLast='';
 fetch('cutin_images/list.json',{cache:'no-store'}).then(r=>r.json()).then(a=>{cutBase=(Array.isArray(a)?a:[]).map(n=>'cutin_images/'+encodeURIComponent(n));prepCutImage()}).catch(()=>{});
 function prepCutImage(){
-  const o=SIMG[curStage().id],list=o&&o.cut.length?o.cut:cutBase;
+  const o=SIMG[curStage().id],list=o&&o.cut.length?o.cut:THEMES[themeId].cutBase?cutBase:[];
   if(!list.length){cutNext=null;return}
   let n;do{n=pick(list)}while(list.length>1&&n===cutLast);
   const im=new Image();im.src=n;cutNext={n,im};
@@ -622,16 +662,18 @@ function spawnAmb(k,any){
   const y=any?rand(0,H):null;
   if(k==='sea')amb.push({k,x:rand(0,W),y:any?y:H+20*U,r:rand(3,14)*U,vx:0,vy:-rand(40,110)*U,ph:rand(0,TAU),rot:0,vr:0});
   else if(k==='flower')amb.push({k,x:rand(-W*.2,W),y:any?y:-20*U,r:rand(8,16)*U,vx:rand(15,55)*U,vy:rand(35,80)*U,ph:rand(0,TAU),rot:rand(0,TAU),vr:rand(-2,2),col:pick(['#ffb3d9','#ff7ab8','#fff0f6','#ffd1e8','#ffe9a8'])});
-  else if(k==='sweets'){const candy=Math.random()<.15;amb.push({k,x:rand(0,W),y:any?y:-20*U,r:rand(6,12)*U*(candy?1.4:1),vx:0,vy:rand(60,140)*U,ph:0,rot:rand(0,TAU),vr:rand(-4,4),col:pick(stageAt(3).balls),candy})}
+  else if(k==='sweets'){const candy=Math.random()<.15;amb.push({k,x:rand(0,W),y:any?y:-20*U,r:rand(6,12)*U*(candy?1.4:1),vx:0,vy:rand(60,140)*U,ph:0,rot:rand(0,TAU),vr:rand(-4,4),col:pick(curStage().balls),candy})}
+  else if(k==='street')amb.push({k,x:rand(0,W),y:any?y:H+30*U,r:rand(10,34)*U,vx:rand(-8,8)*U,vy:-rand(15,45)*U,ph:rand(0,TAU),rot:0,vr:0,col:pick(curStage().balls)});
+  else if(k==='arena')amb.push({k,x:rand(0,W),y:any?y:-20*U,r:rand(2,5)*U,vx:rand(-20,20)*U,vy:rand(40,110)*U,ph:rand(0,TAU),rot:0,vr:0,col:pick(['#ffe14d','#ffb13d','#fff0a8','#ff7a3c'])});
   else if(k==='sky')amb.push({k,x:any?rand(-W*.1,W):-160*U,y:rand(H*.04,H*.92),r:rand(26,60)*U,vx:rand(12,34)*U,vy:0,ph:rand(0,TAU),rot:0,vr:0});
 }
 function enterStage(){
-  amb=[];const k=curStage().id,n={sea:25,flower:18,sweets:30,sky:9}[k]||0;
+  amb=[];const k=curStage().id,n={sea:25,flower:18,sweets:30,sky:9,street:22,arena:40}[k]||0;
   for(let i=0;i<n;i++)spawnAmb(k,true);
   prepCutImage();P.evT=Math.max(P.evT,6);
 }
 function updateAmb(dt){
-  const k=curStage().id,rate={sea:9,flower:6,sweets:12,sky:.5}[k]||0;
+  const k=curStage().id,rate={sea:9,flower:6,sweets:12,sky:.5,street:5,arena:16}[k]||0;
   const spd=mode==='play'?1+A.lvl*1.6+(P.feverT>0?.8:0):1;
   if(rate&&(k!=='sky'||amb.length<12)&&Math.random()<dt*rate*spd)spawnAmb(k,false);
   for(const a of amb){a.ph+=dt;a.x+=a.vx*spd*dt;a.y+=a.vy*spd*dt;a.rot+=a.vr*dt}
@@ -654,6 +696,13 @@ function drawAmb(){
       if(a.candy){g.fillStyle=a.col;g.beginPath();g.arc(0,0,a.r,0,TAU);g.fill();g.strokeStyle='rgba(255,255,255,.85)';g.lineWidth=a.r*.25;g.beginPath();g.arc(0,0,a.r*.55,0,Math.PI*1.3);g.stroke()}
       else{g.strokeStyle=a.col;g.lineWidth=a.r*.45;g.beginPath();g.moveTo(-a.r*.6,0);g.lineTo(a.r*.6,0);g.stroke()}
       g.restore();
+    }else if(a.k==='street'){
+      // ネオンの ぼやけた光
+      const gr=g.createRadialGradient(a.x,a.y,0,a.x,a.y,a.r);gr.addColorStop(0,a.col);gr.addColorStop(1,'rgba(0,0,0,0)');
+      g.globalAlpha=.25+.15*Math.sin(a.ph*2);g.fillStyle=gr;g.beginPath();g.arc(a.x,a.y,a.r,0,TAU);g.fill();
+    }else if(a.k==='arena'){
+      // はなびの 火の粉
+      g.globalAlpha=.5+.5*Math.abs(Math.sin(a.ph*5));g.fillStyle=a.col;g.beginPath();g.arc(a.x+Math.sin(a.ph*2)*10*U,a.y,a.r,0,TAU);g.fill();
     }else if(a.k==='sky'){
       g.globalAlpha=.28;g.fillStyle='#fff';const r=a.r;g.beginPath();
       for(const [dx,dy,k] of [[0,0,1],[.9,.15,.75],[-.9,.2,.65],[.2,-.5,.7]]){g.moveTo(a.x+dx*r+k*r,a.y+dy*r);g.arc(a.x+dx*r,a.y+dy*r,k*r,0,TAU)}
@@ -662,8 +711,26 @@ function drawAmb(){
   }
   g.restore();
 }
-// 背景の上に重ねる ステージの かざり（海の光のすじ・空のにじ）
+// ステージの上から ふる スポットライト・レーザー
+function drawBeams(t,inPlay,cols,n,narrow,fromTop){
+  g.save();g.globalCompositeOperation='lighter';
+  const pow=inPlay?A.lvl:0;
+  for(let i=0;i<n;i++){
+    const ox=W*(i+.5)/n,oy=fromTop?-H*.05:H*1.05,sw=Math.sin(t*(.5+i*.13)+i*1.9)*.55+(i-(n-1)/2)*.12;
+    const len=Math.hypot(W,H)*1.1,w=narrow?len*.012:len*.09,ang=(fromTop?Math.PI/2:-Math.PI/2)+sw;
+    g.save();g.translate(ox,oy);g.rotate(ang);
+    const lg=g.createLinearGradient(0,0,len,0),c=cols[i%cols.length];
+    lg.addColorStop(0,c);lg.addColorStop(1,'rgba(0,0,0,0)');
+    g.globalAlpha=(narrow?.35:.12)+pow*(narrow?.45:.16);g.fillStyle=lg;
+    g.beginPath();g.moveTo(0,0);g.lineTo(len,-w);g.lineTo(len,w);g.closePath();g.fill();g.restore();
+  }
+  g.restore();
+}
+// 背景の上に重ねる ステージの かざり（海の光のすじ・空のにじ・ライブの照明）
 function drawStageBack(t,st,inPlay){
+  if(st.id==='livehouse'){drawBeams(t,inPlay,['#ffffff','#ff4f5e','#ffd36b'],4,false,true);return}
+  if(st.id==='arena'){drawBeams(t,inPlay,['#ffe14d','#ff7a3c'],3,false,true);return}
+  if(st.id==='dome'){drawBeams(t,inPlay,['#3ff6ff','#5dff8a','#b45cff','#5c8bff'],8,true,false);drawBeams(t,inPlay,['#ffffff'],3,false,true);return}
   if(st.id==='sea'){
     g.save();g.globalCompositeOperation='lighter';
     const lg=g.createLinearGradient(0,0,0,H);lg.addColorStop(0,'rgba(160,240,255,.13)');lg.addColorStop(1,'rgba(160,240,255,0)');g.fillStyle=lg;
@@ -1111,7 +1178,7 @@ function frame(now){
   if(mode==='play')updatePlay(dt,t);
   updateFx(dt,t);updateBigFx(dt,t);
   drawBG(t);if(mode==='title')drawTitleFx(t);
-  if(curStage().id==='space')drawStars(dt);else drawAmb();
+  if(curStage().stars)drawStars(dt);else drawAmb();
   g.save();
   if(shake>0)g.translate(rand(-shake,shake),rand(-shake,shake));
   const inGame=mode==='play'||mode==='count';
@@ -1141,6 +1208,7 @@ function show(id){
 function refreshTitle(){
   $('#clsBtns').innerHTML=CLASSES.map(c=>`<button class="clsBtn${c===curCls?' on':''}" data-c="${c}">${c}</button>`).join('');
   $('#startBtn').disabled=!curCls;
+  $('#themeBtns').innerHTML=Object.entries(THEMES).map(([k,th])=>`<button class="themeBtn${k===themeId?' on':''}" data-t="${k}">${th.name}</button>`).join('');
   const L='うたパワー！';$('#logo').innerHTML=[...L].map((c,i)=>`<span style="animation-delay:${i*.12}s">${c}</span>`).join('');
   $('#stageRow').innerHTML='<span class="cap">玉を 10こ あつめると つぎの せかいへ！</span>'+
     STAGES.map((s,i)=>`<span class="schip" style="--a:${s.accent}">${i+1}. ${s.short}</span>`).join('<span class="sarrow">▶</span>');
@@ -1306,6 +1374,7 @@ $('#rTitleBtn').onclick=backTitle;
 $('#rRec').onclick=()=>{recView=curCls;openRecords()};
 $('#recBtn').onclick=()=>{recView=curCls;openRecords()};
 $('#recTabs').onclick=e=>{const c=e.target.dataset&&e.target.dataset.rc;if(c){recView=c;renderRecords()}};
+$('#themeBtns').onclick=e=>{const k=e.target.dataset&&e.target.dataset.t;if(!k||k===themeId)return;setTheme(k);P.stageN=0;amb=[];enterStage();refreshTitle()};
 $('#clsBtns').onclick=e=>{const c=e.target.dataset&&e.target.dataset.c;if(!c)return;curCls=c;fetchRecords(c);refreshTitle();$('#tHint').textContent='';
   const r=e.target.getBoundingClientRect();burst(r.left+r.width/2,r.top+r.height/2,60,'#3ff6ff',true)};
 $('#rankBtn').onclick=openRanking;
