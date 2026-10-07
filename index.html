@@ -115,11 +115,6 @@ th{color:var(--sub);position:sticky;top:0;background:#1d1046}
 .rk .n{text-align:right;font-family:'Dela Gothic One',sans-serif;font-size:calc(var(--u) * 38);line-height:1}
 @media(max-width:700px){.rk{grid-template-columns:64px 1fr auto}.rk .track{display:none}}
 .rk .n small{display:block;font-family:'M PLUS Rounded 1c',sans-serif;font-weight:800;font-size:max(11px,calc(var(--u) * 15));color:var(--sub)}
-/* みための モード */
-.themeRow{gap:calc(var(--u) * 12)}
-.themeBtn{font-family:'Dela Gothic One',sans-serif;font-size:max(14px,calc(var(--u) * 24));color:#fff;padding:.15em .9em;border-radius:999px;border:2px solid var(--line);background:rgba(255,255,255,.06);cursor:pointer}
-.themeBtn.on{border-color:transparent;background:linear-gradient(90deg,#ff4fd8,#7b5cff);box-shadow:0 0 20px rgba(255,79,216,.6)}
-.themeBtn.on[data-t="live"]{background:linear-gradient(90deg,#ff4f5e,#3ff6ff);box-shadow:0 0 20px rgba(63,246,255,.6)}
 /* stages */
 .stageRow{display:flex;align-items:center;gap:calc(var(--u) * 8);flex-wrap:wrap;justify-content:center;font-weight:900;font-size:max(12px,calc(var(--u) * 18))}
 .schip{padding:calc(var(--u) * 3) calc(var(--u) * 14);border-radius:999px;border:2px solid var(--a);background:rgba(0,0,0,.35);box-shadow:0 0 14px var(--a)}
@@ -138,7 +133,6 @@ th{color:var(--sub);position:sticky;top:0;background:#1d1046}
     <div class="ribbon">みんなの うたごえで パワーをためて、玉を ゲットしよう！</div>
     <div class="stageRow" id="stageRow"></div>
   </div>
-  <div class="row themeRow"><span class="cap">みため</span><span id="themeBtns" class="row"></span></div>
   <div class="card goldCard">
     <div class="cap" style="margin-bottom:calc(var(--u) * 12)">クラスを えらんでね</div>
     <div class="row" id="clsBtns"></div>
@@ -209,35 +203,10 @@ const BALL_COLORS=['#ff4f81','#ffb13d','#ffe14d','#5dff8a','#3ff6ff','#5c8bff','
 const GOLD='#ffd54a';
 
 // ================= ステージ =================
-// 玉を10こ（金の玉まで）あつめるごとに つぎの せかいへ。5つめの あとは 1つめに もどる
-// hue:null は いままでどおり色が ぐるぐる変わる。数字なら その色を中心に hueR だけ ゆれる
+// ライブツアー：歌うほど会場が大きくなる。とくてんで つぎのステージへ
+// hue:null は 色が ぐるぐる変わる。数字なら その色を中心に hueR だけ ゆれる
 // stars:true のステージは 星が とんでくる背景になる
-// みための モードは タイトルで えらぶ。kira=これまでの かわいい絵、live=高学年むけの ライブツアー
-const THEMES={
- kira:{name:'キラキラ',cutBase:true,stages:[
-  {id:'space',name:'うちゅうの せかい',short:'うちゅう',accent:'#b45cff',hue:null,stars:true,balls:BALL_COLORS},
-  {id:'sea',name:'うみの せかい',short:'うみ',accent:'#3ff6ff',hue:195,hueR:25,span:120,sat:80,light:[22,6],
-    balls:['#7ff6ff','#4fc3ff','#d6fbff','#5dffd2','#a8b6ff','#3ff6ff','#9fe8ff'],
-    get:['ぷくぷく!!','ゲット!!','ナイス!!','すごい!!','いいね!!'],
-    words:{1:['なみに のって!!','あわあわ ハーモニー!!','イルカも ノリノリ!!','うみの そこまで とどけ!!'],
-      2:['おおなみ ザッパーン!!','クジラも びっくり!!','うみの みんなが あつまった!!','しんかい パワー MAX!!']}},
-  {id:'flower',name:'おはなばたけの せかい',short:'おはなばたけ',accent:'#ff7ab8',hue:330,hueR:35,span:160,sat:75,light:[24,7],
-    balls:['#ff7ab8','#ffb3d9','#ffe14d','#ff9a3c','#c38bff','#7dff9a','#ff5f8f'],
-    get:['さいた!!','ゲット!!','かわいい!!','ナイス!!','すてき!!'],
-    words:{1:['おはなが さいたよ!!','ちょうちょも おどる!!','ぽかぽか ハーモニー!!','いい かおり!!'],
-      2:['はなふぶき!!','もりの みんなが あつまった!!','おはな ぜんかい!!','まんかい パワー MAX!!']}},
-  {id:'sweets',name:'おかしの くに',short:'おかし',accent:'#ffb13d',hue:340,hueR:50,span:240,sat:80,light:[24,7],
-    balls:['#ff6fa8','#ffd36b','#8fe3ff','#c98bff','#ff9a6b','#9cff8a','#fff0a8'],
-    get:['あまーい!!','ゲット!!','おいしそう!!','ナイス!!','いいね!!'],
-    words:{1:['あまーい こえ!!','キャンディ ハーモニー!!','ケーキも ふくらむ!!','チョコっと すごい!!'],
-      2:['スイーツ パーティー!!','おかしの おしろ!!','ドーナツ だいかいてん!!','あまさ MAX!!']}},
-  {id:'sky',name:'にじと くもの せかい',short:'にじ',accent:'#ffe14d',hue:200,hueR:180,span:360,sat:75,light:[26,8],
-    balls:['#ff6b6b','#ffb347','#ffe14d','#7dff8a','#5cc8ff','#8a7bff','#e07bff'],
-    get:['ふわっと!!','ゲット!!','にじいろ!!','ナイス!!','さいこう!!'],
-    words:{1:['そらまで とどけ!!','くもの うえへ!!','にじの ハーモニー!!','つばさを ひろげて!!'],
-      2:['にじいろ パワー!!','そら いっぱいの うたごえ!!','てんしも うたう!!','せかいの てっぺん!!']}}
- ]},
- live:{name:'ライブ',cutBase:false,stages:[
+const STAGES=[
   {id:'street',name:'よるの ストリート',short:'ストリート',accent:'#ff4fd8',hue:285,hueR:40,span:140,sat:80,light:[18,5],
     balls:['#ff4fd8','#3ff6ff','#b45cff','#ff79e8','#5cc8ff','#d6a8ff'],
     get:['ゲット!!','ナイス!!','いいね!!','キマった!!','グッド!!'],
@@ -263,11 +232,7 @@ const THEMES={
     get:['ゲット!!','ナイス!!','ギャラクシー!!','さいこう!!','レジェンド!!'],
     words:{1:['ほしまで とどけ!!','うちゅうに ひびけ!!','ぎんがの ステージ!!','ほしも おどる!!'],
       2:['うちゅう いちの こえ!!','でんせつの フェス!!','ぎんがを ゆらせ!!','レジェンド パワー!!']}}
- ]}
-};
-// えらんだ モード（起動するたびに キラキラから はじまる。端末には ほぞんしない）
-let themeId='kira',STAGES=THEMES.kira.stages;
-function setTheme(id){if(!THEMES[id])return;themeId=id;STAGES=THEMES[id].stages;prepCutImage()}
+];
 // ステージは とくてんで すすむ（くりかえしは しない。さいごの ステージは ずっと つづく）
 // STAGE_SCORE[n] = n番目(0から)のステージに はいる とくてん。むずかしさを かえたいときは ここだけ なおす
 const STAGE_SCORE=[0,15000,35000,65000,100000];
@@ -284,7 +249,7 @@ let stageAssetsLoading=false;
 function loadStageAssets(){
   if(stageAssetsLoading)return;stageAssetsLoading=true;
   fetch('stages/list.json',{cache:'no-store'}).then(r=>r.json()).then(m=>{
-    for(const st of Object.values(THEMES).flatMap(th=>th.stages)){
+    for(const st of STAGES){
       const o=SIMG[st.id]={bg:null,card:null,orb:null,gold:null,balls:[],cut:[]};
       for(const f of (m&&m[st.id])||[]){
         const src='stages/'+st.id+'/'+f.split('/').map(encodeURIComponent).join('/');
@@ -415,12 +380,11 @@ const CUT_WORDS={
   3:['スーパータイム!!','パワー 2ばい!!','きらきら タイム!!']
 };
 const pick=a=>a[Math.floor(Math.random()*a.length)];
-// カットインの画像は いまのステージの stages/<id>/cutin/ から、無ければ cutin_images/ からランダムに選ぶ
+// カットインの画像は いまのステージの stages/<id>/cutin/ からランダムに選ぶ
 // （一覧 list.json は GitHub Actions が自動で作る）
-let cutBase=[],cutNext=null,cutLast='';
-fetch('cutin_images/list.json',{cache:'no-store'}).then(r=>r.json()).then(a=>{cutBase=(Array.isArray(a)?a:[]).map(n=>'cutin_images/'+encodeURIComponent(n));prepCutImage()}).catch(()=>{});
+let cutNext=null,cutLast='';
 function prepCutImage(){
-  const o=SIMG[curStage().id],list=o&&o.cut.length?o.cut:THEMES[themeId].cutBase?cutBase:[];
+  const o=SIMG[curStage().id],list=o?o.cut:[];
   if(!list.length){cutNext=null;return}
   let n;do{n=pick(list)}while(list.length>1&&n===cutLast);
   const im=new Image();im.src=n;cutNext={n,im};
@@ -660,26 +624,22 @@ function drawStageFx(t){
   }
 }
 
-// ================= ステージごとの まわりの うごき（泡・花びら・おかし・雲） =================
+// ================= ステージごとの まわりの うごき（ネオンの光・火の粉） =================
 let amb=[];
 function spawnAmb(k,any){
   const y=any?rand(0,H):null;
-  if(k==='sea')amb.push({k,x:rand(0,W),y:any?y:H+20*U,r:rand(3,14)*U,vx:0,vy:-rand(40,110)*U,ph:rand(0,TAU),rot:0,vr:0});
-  else if(k==='flower')amb.push({k,x:rand(-W*.2,W),y:any?y:-20*U,r:rand(8,16)*U,vx:rand(15,55)*U,vy:rand(35,80)*U,ph:rand(0,TAU),rot:rand(0,TAU),vr:rand(-2,2),col:pick(['#ffb3d9','#ff7ab8','#fff0f6','#ffd1e8','#ffe9a8'])});
-  else if(k==='sweets'){const candy=Math.random()<.15;amb.push({k,x:rand(0,W),y:any?y:-20*U,r:rand(6,12)*U*(candy?1.4:1),vx:0,vy:rand(60,140)*U,ph:0,rot:rand(0,TAU),vr:rand(-4,4),col:pick(curStage().balls),candy})}
-  else if(k==='street')amb.push({k,x:rand(0,W),y:any?y:H+30*U,r:rand(10,34)*U,vx:rand(-8,8)*U,vy:-rand(15,45)*U,ph:rand(0,TAU),rot:0,vr:0,col:pick(curStage().balls)});
+  if(k==='street')amb.push({k,x:rand(0,W),y:any?y:H+30*U,r:rand(10,34)*U,vx:rand(-8,8)*U,vy:-rand(15,45)*U,ph:rand(0,TAU),rot:0,vr:0,col:pick(curStage().balls)});
   else if(k==='arena')amb.push({k,x:rand(0,W),y:any?y:-20*U,r:rand(2,5)*U,vx:rand(-20,20)*U,vy:rand(40,110)*U,ph:rand(0,TAU),rot:0,vr:0,col:pick(['#ffe14d','#ffb13d','#fff0a8','#ff7a3c'])});
-  else if(k==='sky')amb.push({k,x:any?rand(-W*.1,W):-160*U,y:rand(H*.04,H*.92),r:rand(26,60)*U,vx:rand(12,34)*U,vy:0,ph:rand(0,TAU),rot:0,vr:0});
 }
 function enterStage(){
-  amb=[];const k=curStage().id,n={sea:25,flower:18,sweets:30,sky:9,street:22,arena:40}[k]||0;
+  amb=[];const k=curStage().id,n={street:22,arena:40}[k]||0;
   for(let i=0;i<n;i++)spawnAmb(k,true);
   prepCutImage();P.evT=Math.max(P.evT,6);
 }
 function updateAmb(dt){
-  const k=curStage().id,rate={sea:9,flower:6,sweets:12,sky:.5,street:5,arena:16}[k]||0;
+  const k=curStage().id,rate={street:5,arena:16}[k]||0;
   const spd=mode==='play'?1+A.lvl*1.6+(P.feverT>0?.8:0):1;
-  if(rate&&(k!=='sky'||amb.length<12)&&Math.random()<dt*rate*spd)spawnAmb(k,false);
+  if(rate&&Math.random()<dt*rate*spd)spawnAmb(k,false);
   for(const a of amb){a.ph+=dt;a.x+=a.vx*spd*dt;a.y+=a.vy*spd*dt;a.rot+=a.vr*dt}
   amb=amb.filter(a=>a.k===k&&a.y>-60*U&&a.y<H+60*U&&a.x<W+200*U);
 }
@@ -687,30 +647,13 @@ function drawAmb(){
   if(!amb.length)return;
   g.save();g.lineCap='round';
   for(const a of amb){
-    if(a.k==='sea'){
-      const x=a.x+Math.sin(a.ph*2)*8*U;
-      g.globalAlpha=.6;g.strokeStyle='#c8f8ff';g.lineWidth=Math.max(1,a.r*.15);g.fillStyle='rgba(200,248,255,.15)';
-      g.beginPath();g.arc(x,a.y,a.r,0,TAU);g.fill();g.stroke();
-      g.globalAlpha=.9;g.fillStyle='#fff';g.beginPath();g.arc(x-a.r*.35,a.y-a.r*.35,a.r*.22,0,TAU);g.fill();
-    }else if(a.k==='flower'){
-      g.globalAlpha=.85;g.fillStyle=a.col;g.save();g.translate(a.x+Math.sin(a.ph*1.5)*20*U,a.y);g.rotate(a.rot);
-      g.scale(1,.35+.65*Math.abs(Math.cos(a.ph*2.2)));g.beginPath();g.ellipse(0,0,a.r,a.r*.55,0,0,TAU);g.fill();g.restore();
-    }else if(a.k==='sweets'){
-      g.globalAlpha=.9;g.save();g.translate(a.x,a.y);g.rotate(a.rot);
-      if(a.candy){g.fillStyle=a.col;g.beginPath();g.arc(0,0,a.r,0,TAU);g.fill();g.strokeStyle='rgba(255,255,255,.85)';g.lineWidth=a.r*.25;g.beginPath();g.arc(0,0,a.r*.55,0,Math.PI*1.3);g.stroke()}
-      else{g.strokeStyle=a.col;g.lineWidth=a.r*.45;g.beginPath();g.moveTo(-a.r*.6,0);g.lineTo(a.r*.6,0);g.stroke()}
-      g.restore();
-    }else if(a.k==='street'){
+    if(a.k==='street'){
       // ネオンの ぼやけた光
       const gr=g.createRadialGradient(a.x,a.y,0,a.x,a.y,a.r);gr.addColorStop(0,a.col);gr.addColorStop(1,'rgba(0,0,0,0)');
       g.globalAlpha=.25+.15*Math.sin(a.ph*2);g.fillStyle=gr;g.beginPath();g.arc(a.x,a.y,a.r,0,TAU);g.fill();
     }else if(a.k==='arena'){
       // はなびの 火の粉
       g.globalAlpha=.5+.5*Math.abs(Math.sin(a.ph*5));g.fillStyle=a.col;g.beginPath();g.arc(a.x+Math.sin(a.ph*2)*10*U,a.y,a.r,0,TAU);g.fill();
-    }else if(a.k==='sky'){
-      g.globalAlpha=.28;g.fillStyle='#fff';const r=a.r;g.beginPath();
-      for(const [dx,dy,k] of [[0,0,1],[.9,.15,.75],[-.9,.2,.65],[.2,-.5,.7]]){g.moveTo(a.x+dx*r+k*r,a.y+dy*r);g.arc(a.x+dx*r,a.y+dy*r,k*r,0,TAU)}
-      g.fill();
     }
   }
   g.restore();
@@ -730,25 +673,11 @@ function drawBeams(t,inPlay,cols,n,narrow,fromTop){
   }
   g.restore();
 }
-// 背景の上に重ねる ステージの かざり（海の光のすじ・空のにじ・ライブの照明）
+// 背景の上に重ねる ステージの かざり（ライブの照明）
 function drawStageBack(t,st,inPlay){
   if(st.id==='livehouse'){drawBeams(t,inPlay,['#ffffff','#ff4f5e','#ffd36b'],4,false,true);return}
   if(st.id==='arena'){drawBeams(t,inPlay,['#ffe14d','#ff7a3c'],3,false,true);return}
   if(st.id==='dome'){drawBeams(t,inPlay,['#3ff6ff','#5dff8a','#b45cff','#5c8bff'],8,true,false);drawBeams(t,inPlay,['#ffffff'],3,false,true);return}
-  if(st.id==='sea'){
-    g.save();g.globalCompositeOperation='lighter';
-    const lg=g.createLinearGradient(0,0,0,H);lg.addColorStop(0,'rgba(160,240,255,.13)');lg.addColorStop(1,'rgba(160,240,255,0)');g.fillStyle=lg;
-    for(let i=0;i<6;i++){
-      const x=W*(.08+i*.17)+Math.sin(t*.4+i*1.7)*W*.04,w=W*(.05+.03*Math.sin(i*2.3));
-      g.beginPath();g.moveTo(x-w/2,0);g.lineTo(x+w/2,0);g.lineTo(x+w*1.5+W*.08,H);g.lineTo(x-w*.5+W*.08,H);g.closePath();g.fill();
-    }
-    g.restore();
-  }else if(st.id==='sky'){
-    const rc=['#ff4d4d','#ff9a3c','#ffe14d','#5dff8a','#3ff6ff','#5c8bff','#b45cff'],R0=Math.max(W,H)*.62,bw=R0*.035;
-    g.save();g.globalCompositeOperation='lighter';g.globalAlpha=.16+(inPlay?A.lvl*.18:0);g.lineWidth=bw;
-    rc.forEach((c,i)=>{g.strokeStyle=c;g.beginPath();g.arc(W/2,H*1.08,R0-i*bw,Math.PI,TAU);g.stroke()});
-    g.restore();
-  }
 }
 
 function getBall(){
@@ -1239,7 +1168,6 @@ function show(id){
 function refreshTitle(){
   $('#clsBtns').innerHTML=CLASSES.map(c=>`<button class="clsBtn${c===curCls?' on':''}" data-c="${c}">${c}</button>`).join('');
   $('#startBtn').disabled=!curCls;
-  $('#themeBtns').innerHTML=Object.entries(THEMES).map(([k,th])=>`<button class="themeBtn${k===themeId?' on':''}" data-t="${k}">${th.name}</button>`).join('');
   const L='うたパワー！';$('#logo').innerHTML=[...L].map((c,i)=>`<span style="animation-delay:${i*.12}s">${c}</span>`).join('');
   // さいしょの2つだけ 名前を 見せる。のこりは がんばって とくてんを とると わかる
   $('#stageRow').innerHTML='<span class="cap">とくてんが ふえると つぎの せかいへ！</span>'+
@@ -1407,7 +1335,6 @@ $('#rTitleBtn').onclick=backTitle;
 $('#rRec').onclick=()=>{recView=curCls;openRecords()};
 $('#recBtn').onclick=()=>{recView=curCls;openRecords()};
 $('#recTabs').onclick=e=>{const c=e.target.dataset&&e.target.dataset.rc;if(c){recView=c;renderRecords()}};
-$('#themeBtns').onclick=e=>{const k=e.target.dataset&&e.target.dataset.t;if(!k||k===themeId)return;setTheme(k);P.stageN=0;amb=[];enterStage();refreshTitle()};
 $('#clsBtns').onclick=e=>{const c=e.target.dataset&&e.target.dataset.c;if(!c)return;curCls=c;fetchRecords(c);refreshTitle();$('#tHint').textContent='';
   const r=e.target.getBoundingClientRect();burst(r.left+r.width/2,r.top+r.height/2,60,'#3ff6ff',true)};
 $('#rankBtn').onclick=openRanking;
